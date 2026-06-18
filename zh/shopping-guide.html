@@ -129,6 +129,36 @@ tailwind.config = {
     menu.classList.toggle('hidden', !willOpen);
     button.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
   };
+
+  window.applyStyleFilters = function () {
+    var active = document.querySelector('[data-style-filter].bg-primary-container');
+    var occasion = active ? active.getAttribute('data-style-filter') : 'all';
+    var season = (document.querySelector('[data-filter-season]') || {}).value || 'all';
+    var budget = (document.querySelector('[data-filter-budget]') || {}).value || 'all';
+    var style = (document.querySelector('[data-filter-style]') || {}).value || 'all';
+    document.querySelectorAll('[data-occasion]').forEach(function (card) {
+      var show = (occasion === 'all' || card.getAttribute('data-occasion') === occasion) &&
+        (season === 'all' || card.getAttribute('data-season') === season) &&
+        (budget === 'all' || card.getAttribute('data-budget') === budget) &&
+        (style === 'all' || card.getAttribute('data-style') === style);
+      card.classList.toggle('hidden', !show);
+    });
+  };
+  window.resetStyleFilters = function (button) {
+    document.querySelectorAll('[data-style-filter]').forEach(function (btn) {
+      var isAll = btn.getAttribute('data-style-filter') === 'all';
+      btn.classList.toggle('bg-primary-container', isAll);
+      btn.classList.toggle('text-on-primary-container', isAll);
+      btn.classList.toggle('bg-surface-variant', !isAll);
+      btn.classList.toggle('text-on-surface-variant', !isAll);
+    });
+    document.querySelectorAll('[data-filter-season], [data-filter-budget], [data-filter-style]').forEach(function (select) { select.value = 'all'; });
+    window.applyStyleFilters();
+    if (button) button.textContent = button.getAttribute('data-loaded-label') || 'All items loaded';
+  };
+  document.addEventListener('change', function (event) {
+    if (event.target.matches('[data-filter-season], [data-filter-budget], [data-filter-style]')) window.applyStyleFilters();
+  });
   document.addEventListener('click', function (event) {
     if (!event.target.closest('[data-language-switcher]')) closeLanguageMenus();
   });
@@ -151,9 +181,7 @@ tailwind.config = {
         btn.classList.toggle('bg-surface-variant', btn !== filter);
         btn.classList.toggle('text-on-surface-variant', btn !== filter);
       });
-      document.querySelectorAll('[data-occasion]').forEach(function (card) {
-        card.classList.toggle('hidden', value !== 'all' && card.getAttribute('data-occasion') !== value);
-      });
+      window.applyStyleFilters();
     }
   });
   window.handleNewsletter = function (event, message) {
@@ -348,9 +376,9 @@ tailwind.config = {
         <h2 class="font-headline-md text-on-surface mb-4">免邮技巧</h2>
         <div class="bg-white rounded-xl p-6 soft-shadow border border-outline-variant/20">
           <ul class="space-y-4 text-sm text-on-surface-variant">
-            <li class="flex items-start gap-3"><span class="material-symbols-outlined text-primary">local_shipping</span><div><strong class="text-on-surface">免邮门槛</strong><p>US: $29 standard | UK: £39 | JP: ¥2,000 | EU: €39 | BR: R$49 (promo)</p></div></li>
-            <li class="flex items-start gap-3"><span class="material-symbols-outlined text-primary">event</span><div><strong class="text-on-surface">闪购活动</strong><p>During site-wide events, free shipping minimums often drop by 30-50%.</p></div></li>
-            <li class="flex items-start gap-3"><span class="material-symbols-outlined text-primary">group</span><div><strong class="text-on-surface">拼单下单</strong><p>Combine orders with friends to hit thresholds faster and split shipping.</p></div></li>
+            <li class="flex items-start gap-3"><span class="material-symbols-outlined text-primary">local_shipping</span><div><strong class="text-on-surface">免邮门槛</strong><p>美国 $29 标准配送｜英国 £39｜日本 ¥2,000｜欧盟 €39｜巴西活动期 R$49</p></div></li>
+            <li class="flex items-start gap-3"><span class="material-symbols-outlined text-primary">event</span><div><strong class="text-on-surface">闪购活动</strong><p>全站大促期间，免邮门槛通常会临时下调 30%-50%，适合把基础款集中下单。</p></div></li>
+            <li class="flex items-start gap-3"><span class="material-symbols-outlined text-primary">group</span><div><strong class="text-on-surface">拼单下单</strong><p>与朋友拼单更容易达到免邮门槛，也能分摊可能产生的运费或服务费。</p></div></li>
           </ul>
         </div>
       </section>
@@ -361,9 +389,9 @@ tailwind.config = {
         <h2 class="font-headline-md text-on-surface mb-4">退换货流程</h2>
         <div class="bg-white rounded-xl p-6 soft-shadow border border-outline-variant/20">
           <ul class="space-y-4 text-sm text-on-surface-variant">
-            <li class="flex items-start gap-3"><span class="material-symbols-outlined text-primary">schedule</span><div><strong class="text-on-surface">退货期限</strong><p>Most regions allow 30 天 from delivery. First return per order is usually free.</p></div></li>
-            <li class="flex items-start gap-3"><span class="material-symbols-outlined text-primary">print</span><div><strong class="text-on-surface">自助退货</strong><p>Use the App/Website "My Orders" → "Return" to print prepaid labels automatically.</p></div></li>
-            <li class="flex items-start gap-3"><span class="material-symbols-outlined text-primary">payments</span><div><strong class="text-on-surface">退款方式</strong><p>Refunds return to original payment method within 5-10 business 天 after warehouse receipt.</p></div></li>
+            <li class="flex items-start gap-3"><span class="material-symbols-outlined text-primary">schedule</span><div><strong class="text-on-surface">退货期限</strong><p>多数地区从签收日起 30 天内可申请退货；同一订单首件/首次退货通常免费。</p></div></li>
+            <li class="flex items-start gap-3"><span class="material-symbols-outlined text-primary">print</span><div><strong class="text-on-surface">自助退货</strong><p>在 App 或网页端进入“我的订单”→“退货”，按提示选择原因并生成预付退货标签。</p></div></li>
+            <li class="flex items-start gap-3"><span class="material-symbols-outlined text-primary">payments</span><div><strong class="text-on-surface">退款方式</strong><p>仓库签收并审核后，退款通常会在 5-10 个工作日内原路退回。</p></div></li>
           </ul>
         </div>
       </section>

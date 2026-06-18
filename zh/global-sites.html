@@ -129,6 +129,36 @@ tailwind.config = {
     menu.classList.toggle('hidden', !willOpen);
     button.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
   };
+
+  window.applyStyleFilters = function () {
+    var active = document.querySelector('[data-style-filter].bg-primary-container');
+    var occasion = active ? active.getAttribute('data-style-filter') : 'all';
+    var season = (document.querySelector('[data-filter-season]') || {}).value || 'all';
+    var budget = (document.querySelector('[data-filter-budget]') || {}).value || 'all';
+    var style = (document.querySelector('[data-filter-style]') || {}).value || 'all';
+    document.querySelectorAll('[data-occasion]').forEach(function (card) {
+      var show = (occasion === 'all' || card.getAttribute('data-occasion') === occasion) &&
+        (season === 'all' || card.getAttribute('data-season') === season) &&
+        (budget === 'all' || card.getAttribute('data-budget') === budget) &&
+        (style === 'all' || card.getAttribute('data-style') === style);
+      card.classList.toggle('hidden', !show);
+    });
+  };
+  window.resetStyleFilters = function (button) {
+    document.querySelectorAll('[data-style-filter]').forEach(function (btn) {
+      var isAll = btn.getAttribute('data-style-filter') === 'all';
+      btn.classList.toggle('bg-primary-container', isAll);
+      btn.classList.toggle('text-on-primary-container', isAll);
+      btn.classList.toggle('bg-surface-variant', !isAll);
+      btn.classList.toggle('text-on-surface-variant', !isAll);
+    });
+    document.querySelectorAll('[data-filter-season], [data-filter-budget], [data-filter-style]').forEach(function (select) { select.value = 'all'; });
+    window.applyStyleFilters();
+    if (button) button.textContent = button.getAttribute('data-loaded-label') || 'All items loaded';
+  };
+  document.addEventListener('change', function (event) {
+    if (event.target.matches('[data-filter-season], [data-filter-budget], [data-filter-style]')) window.applyStyleFilters();
+  });
   document.addEventListener('click', function (event) {
     if (!event.target.closest('[data-language-switcher]')) closeLanguageMenus();
   });
@@ -151,9 +181,7 @@ tailwind.config = {
         btn.classList.toggle('bg-surface-variant', btn !== filter);
         btn.classList.toggle('text-on-surface-variant', btn !== filter);
       });
-      document.querySelectorAll('[data-occasion]').forEach(function (card) {
-        card.classList.toggle('hidden', value !== 'all' && card.getAttribute('data-occasion') !== value);
-      });
+      window.applyStyleFilters();
     }
   });
   window.handleNewsletter = function (event, message) {
@@ -263,7 +291,7 @@ tailwind.config = {
   <section class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-outline-variant pb-4">
     <div>
       <h1 class="font-display-lg text-on-surface">Shein 全球站点对比</h1>
-      <p class="text-on-surface-variant max-w-2xl">全面解析各国家/地区站点的价格差异、物流时效与购物政策。</p>
+      <p class="text-on-surface-variant max-w-2xl">全面解析各国家/地区站点的价格差异、物流时效与购物政策。数据为编辑样例，请以下单页实时价格与政策为准。</p><p class="text-xs text-outline mt-2">最后更新时间：2026-06-18</p>
     </div>
     <div class="flex items-center gap-2">
       <label class="text-xs font-bold text-on-surface-variant uppercase">基准站点</label>
@@ -292,11 +320,11 @@ tailwind.config = {
           </tr>
         </thead>
         <tbody class="divide-y divide-surface-container-high">
-          <tr class="hover:bg-surface transition-colors"><td class="p-4 sticky left-0 bg-white z-10 font-bold flex items-center gap-2"><span class="text-xl">🇺🇸</span> US</td><td class="p-4">100 (base)</td><td class="p-4 text-on-surface-variant">7-10 天</td><td class="p-4 font-semibold text-primary">$29 Standard</td><td class="p-4 text-on-surface-variant"><span class="inline-flex px-2 py-1 rounded bg-tertiary-fixed text-on-tertiary-fixed text-xs font-bold mr-1">很友好</span>$800 免税额度</td><td class="p-4 text-on-surface-variant">PayPal, Afterpay, Klarna</td></tr>
-          <tr class="hover:bg-surface transition-colors"><td class="p-4 sticky left-0 bg-white z-10 font-bold flex items-center gap-2"><span class="text-xl">🇬🇧</span> UK</td><td class="p-4">105 <span class="text-error text-xs">↑5%</span></td><td class="p-4 text-on-surface-variant">6-9 天</td><td class="p-4 font-semibold text-primary">£39 Standard</td><td class="p-4 text-on-surface-variant"><span class="inline-flex px-2 py-1 rounded bg-surface-variant text-on-surface-variant text-xs font-bold mr-1">一般</span>含 VAT</td><td class="p-4 text-on-surface-variant">Clearpay, PayPal</td></tr>
-          <tr class="hover:bg-surface transition-colors"><td class="p-4 sticky left-0 bg-white z-10 font-bold flex items-center gap-2"><span class="text-xl">🇯🇵</span> JP</td><td class="p-4">92 <span class="text-tertiary text-xs">↓8%</span></td><td class="p-4 text-on-surface-variant">4-7 天</td><td class="p-4 font-semibold text-primary">¥2,000 Standard</td><td class="p-4 text-on-surface-variant"><span class="inline-flex px-2 py-1 rounded bg-tertiary-fixed text-on-tertiary-fixed text-xs font-bold mr-1">友好</span>¥16,666 免税额度</td><td class="p-4 text-on-surface-variant">Konbini, Pay-easy</td></tr>
-          <tr class="hover:bg-surface transition-colors"><td class="p-4 sticky left-0 bg-white z-10 font-bold flex items-center gap-2"><span class="text-xl">🇧🇷</span> BR</td><td class="p-4">118 <span class="text-error text-xs">↑18%</span></td><td class="p-4 text-on-surface-variant">15-30 天</td><td class="p-4 font-semibold text-primary">R$49 (promo)</td><td class="p-4 text-on-surface-variant"><span class="inline-flex px-2 py-1 rounded bg-error-container text-on-error-container text-xs font-bold mr-1">严格</span>Remessa Conforme</td><td class="p-4 text-on-surface-variant">PIX, Boleto, Installments</td></tr>
-          <tr class="hover:bg-surface transition-colors"><td class="p-4 sticky left-0 bg-white z-10 font-bold flex items-center gap-2"><span class="text-xl">🇦🇪</span> 阿联酋</td><td class="p-4">112 <span class="text-error text-xs">↑12%</span></td><td class="p-4 text-on-surface-variant">5-8 天</td><td class="p-4 font-semibold text-primary">AED 199</td><td class="p-4 text-on-surface-variant"><span class="inline-flex px-2 py-1 rounded bg-surface-variant text-on-surface-variant text-xs font-bold mr-1">一般</span>5% over AED 300</td><td class="p-4 text-on-surface-variant">COD, Tabby</td></tr>
+          <tr class="hover:bg-surface transition-colors"><td class="p-4 sticky left-0 bg-white z-10 font-bold flex items-center gap-2"><span class="text-xl">🇺🇸</span> US</td><td class="p-4">100（基准）</td><td class="p-4 text-on-surface-variant">7-10 天</td><td class="p-4 font-semibold text-primary">$29 标准配送</td><td class="p-4 text-on-surface-variant"><span class="inline-flex px-2 py-1 rounded bg-tertiary-fixed text-on-tertiary-fixed text-xs font-bold mr-1">很友好</span>$800 免税额度</td><td class="p-4 text-on-surface-variant">PayPal、Afterpay、Klarna</td></tr>
+          <tr class="hover:bg-surface transition-colors"><td class="p-4 sticky left-0 bg-white z-10 font-bold flex items-center gap-2"><span class="text-xl">🇬🇧</span> UK</td><td class="p-4">105 <span class="text-error text-xs">↑5%</span></td><td class="p-4 text-on-surface-variant">6-9 天</td><td class="p-4 font-semibold text-primary">£39 标准配送</td><td class="p-4 text-on-surface-variant"><span class="inline-flex px-2 py-1 rounded bg-surface-variant text-on-surface-variant text-xs font-bold mr-1">一般</span>含 VAT</td><td class="p-4 text-on-surface-variant">Clearpay、PayPal</td></tr>
+          <tr class="hover:bg-surface transition-colors"><td class="p-4 sticky left-0 bg-white z-10 font-bold flex items-center gap-2"><span class="text-xl">🇯🇵</span> JP</td><td class="p-4">92 <span class="text-tertiary text-xs">↓8%</span></td><td class="p-4 text-on-surface-variant">4-7 天</td><td class="p-4 font-semibold text-primary">¥2,000 标准配送</td><td class="p-4 text-on-surface-variant"><span class="inline-flex px-2 py-1 rounded bg-tertiary-fixed text-on-tertiary-fixed text-xs font-bold mr-1">友好</span>¥16,666 免税额度</td><td class="p-4 text-on-surface-variant">便利店支付、Pay-easy</td></tr>
+          <tr class="hover:bg-surface transition-colors"><td class="p-4 sticky left-0 bg-white z-10 font-bold flex items-center gap-2"><span class="text-xl">🇧🇷</span> BR</td><td class="p-4">118 <span class="text-error text-xs">↑18%</span></td><td class="p-4 text-on-surface-variant">15-30 天</td><td class="p-4 font-semibold text-primary">R$49（活动价）</td><td class="p-4 text-on-surface-variant"><span class="inline-flex px-2 py-1 rounded bg-error-container text-on-error-container text-xs font-bold mr-1">严格</span>Remessa Conforme</td><td class="p-4 text-on-surface-variant">PIX、Boleto、信用卡分期</td></tr>
+          <tr class="hover:bg-surface transition-colors"><td class="p-4 sticky left-0 bg-white z-10 font-bold flex items-center gap-2"><span class="text-xl">🇦🇪</span> 阿联酋</td><td class="p-4">112 <span class="text-error text-xs">↑12%</span></td><td class="p-4 text-on-surface-variant">5-8 天</td><td class="p-4 font-semibold text-primary">AED 199</td><td class="p-4 text-on-surface-variant"><span class="inline-flex px-2 py-1 rounded bg-surface-variant text-on-surface-variant text-xs font-bold mr-1">一般</span>AED 300 以上约 5%</td><td class="p-4 text-on-surface-variant">货到付款、Tabby</td></tr>
         </tbody>
       </table>
     </div>
@@ -307,9 +335,9 @@ tailwind.config = {
     <div class="flex justify-between items-center">
       <h2 class="font-headline-md text-on-surface">同款热门单品价格可视化</h2>
       <div class="flex items-center gap-3 text-xs text-on-surface-variant">
-        <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-primary-container inline-block"></span> Tank Top</span>
-        <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-secondary-container inline-block"></span> Jeans</span>
-        <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-surface-variant border inline-block"></span> Dress</span>
+        <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-primary-container inline-block"></span> 背心</span>
+        <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-secondary-container inline-block"></span> 牛仔裤</span>
+        <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-surface-variant border inline-block"></span> 连衣裙</span>
       </div>
     </div>
     <div class="bg-white p-6 rounded-xl soft-shadow border border-outline-variant/20 flex flex-col gap-4">
@@ -326,24 +354,24 @@ tailwind.config = {
     <h2 class="font-headline-md text-on-surface">区域海淘避坑指南</h2>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       <div class="bg-white rounded-xl soft-shadow overflow-hidden border border-outline-variant/20 group">
-        <div class="h-40 overflow-hidden relative"><img src="https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=600&q=80" alt="日本" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy"/><div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div><div class="absolute bottom-3 left-3 flex items-center gap-2"><span class="text-2xl">🇯🇵</span><h3 class="text-white font-bold text-sm">日本</h3></div></div>
+        <div class="h-40 overflow-hidden relative"><img src="/assets/images/regional-japan.svg" alt="日本" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy"/><div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div><div class="absolute bottom-3 left-3 flex items-center gap-2"><span class="text-2xl">🇯🇵</span><h3 class="text-white font-bold text-sm">日本</h3></div></div>
         <div class="p-4 space-y-2 text-sm text-on-surface-variant">
-          <p class="flex items-start gap-2"><span class="material-symbols-outlined text-primary text-sm">straighten</span><span><strong>版型偏小：</strong> 日本ese lines (e.g., Dazy) run 1-2 sizes smaller than US/EU.</span></p>
-          <p class="flex items-start gap-2"><span class="material-symbols-outlined text-primary text-sm">local_shipping</span><span><strong>配送较快：</strong> 4-7 天, supports convenience store pickup.</span></p>
+          <p class="flex items-start gap-2"><span class="material-symbols-outlined text-primary text-sm">straighten</span><span><strong>版型偏小：</strong> 日本站部分品牌（如 Dazy）通常比欧美尺码小 1-2 码。</span></p>
+          <p class="flex items-start gap-2"><span class="material-symbols-outlined text-primary text-sm">local_shipping</span><span><strong>配送较快：</strong> 4-7 天，部分地区支持便利店取件。</span></p>
         </div>
       </div>
       <div class="bg-white rounded-xl soft-shadow overflow-hidden border border-outline-variant/20 group">
-        <div class="h-40 overflow-hidden relative"><img src="https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=600&q=80" alt="巴西" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy"/><div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div><div class="absolute bottom-3 left-3 flex items-center gap-2"><span class="text-2xl">🇧🇷</span><h3 class="text-white font-bold text-sm">巴西</h3></div></div>
+        <div class="h-40 overflow-hidden relative"><img src="/assets/images/regional-brazil.svg" alt="巴西" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy"/><div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div><div class="absolute bottom-3 left-3 flex items-center gap-2"><span class="text-2xl">🇧🇷</span><h3 class="text-white font-bold text-sm">巴西</h3></div></div>
         <div class="p-4 space-y-2 text-sm text-on-surface-variant">
-          <p class="flex items-start gap-2"><span class="material-symbols-outlined text-primary text-sm">credit_card</span><span><strong>分期付款：</strong> Credit card installments up to 6-12 months, interest-free.</span></p>
-          <p class="flex items-start gap-2"><span class="material-symbols-outlined text-error text-sm">gavel</span><span><strong>税费严格：</strong> Remessa Conforme; 17% ICMS state tax at checkout.</span></p>
+          <p class="flex items-start gap-2"><span class="material-symbols-outlined text-primary text-sm">credit_card</span><span><strong>分期付款：</strong> 信用卡通常支持 6-12 期免息分期。</span></p>
+          <p class="flex items-start gap-2"><span class="material-symbols-outlined text-error text-sm">gavel</span><span><strong>税费严格：</strong> 适用 Remessa Conforme，结账时可能收取 17% ICMS 州税。</span></p>
         </div>
       </div>
       <div class="bg-white rounded-xl soft-shadow overflow-hidden border border-outline-variant/20 group">
-        <div class="h-40 overflow-hidden relative"><img src="https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=600&q=80" alt="阿联酋" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy"/><div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div><div class="absolute bottom-3 left-3 flex items-center gap-2"><span class="text-2xl">🇦🇪</span><h3 class="text-white font-bold text-sm">阿联酋</h3></div></div>
+        <div class="h-40 overflow-hidden relative"><img src="/assets/images/regional-uae.svg" alt="阿联酋" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy"/><div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div><div class="absolute bottom-3 left-3 flex items-center gap-2"><span class="text-2xl">🇦🇪</span><h3 class="text-white font-bold text-sm">阿联酋</h3></div></div>
         <div class="p-4 space-y-2 text-sm text-on-surface-variant">
-          <p class="flex items-start gap-2"><span class="material-symbols-outlined text-primary text-sm">checkroom</span><span><strong>端庄穿搭：</strong> Dedicated modest lines, breathable fabrics for sun protection.</span></p>
-          <p class="flex items-start gap-2"><span class="material-symbols-outlined text-primary text-sm">payments</span><span><strong>支持货到付款：</strong> Cash on delivery widely supported; small fee may apply.</span></p>
+          <p class="flex items-start gap-2"><span class="material-symbols-outlined text-primary text-sm">checkroom</span><span><strong>端庄穿搭：</strong> 有端庄穿搭专区，建议优先选透气防晒面料。</span></p>
+          <p class="flex items-start gap-2"><span class="material-symbols-outlined text-primary text-sm">payments</span><span><strong>支持货到付款：</strong> 多数地区支持货到付款，可能收取少量服务费。</span></p>
         </div>
       </div>
     </div>

@@ -129,6 +129,36 @@ tailwind.config = {
     menu.classList.toggle('hidden', !willOpen);
     button.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
   };
+
+  window.applyStyleFilters = function () {
+    var active = document.querySelector('[data-style-filter].bg-primary-container');
+    var occasion = active ? active.getAttribute('data-style-filter') : 'all';
+    var season = (document.querySelector('[data-filter-season]') || {}).value || 'all';
+    var budget = (document.querySelector('[data-filter-budget]') || {}).value || 'all';
+    var style = (document.querySelector('[data-filter-style]') || {}).value || 'all';
+    document.querySelectorAll('[data-occasion]').forEach(function (card) {
+      var show = (occasion === 'all' || card.getAttribute('data-occasion') === occasion) &&
+        (season === 'all' || card.getAttribute('data-season') === season) &&
+        (budget === 'all' || card.getAttribute('data-budget') === budget) &&
+        (style === 'all' || card.getAttribute('data-style') === style);
+      card.classList.toggle('hidden', !show);
+    });
+  };
+  window.resetStyleFilters = function (button) {
+    document.querySelectorAll('[data-style-filter]').forEach(function (btn) {
+      var isAll = btn.getAttribute('data-style-filter') === 'all';
+      btn.classList.toggle('bg-primary-container', isAll);
+      btn.classList.toggle('text-on-primary-container', isAll);
+      btn.classList.toggle('bg-surface-variant', !isAll);
+      btn.classList.toggle('text-on-surface-variant', !isAll);
+    });
+    document.querySelectorAll('[data-filter-season], [data-filter-budget], [data-filter-style]').forEach(function (select) { select.value = 'all'; });
+    window.applyStyleFilters();
+    if (button) button.textContent = button.getAttribute('data-loaded-label') || 'All items loaded';
+  };
+  document.addEventListener('change', function (event) {
+    if (event.target.matches('[data-filter-season], [data-filter-budget], [data-filter-style]')) window.applyStyleFilters();
+  });
   document.addEventListener('click', function (event) {
     if (!event.target.closest('[data-language-switcher]')) closeLanguageMenus();
   });
@@ -151,9 +181,7 @@ tailwind.config = {
         btn.classList.toggle('bg-surface-variant', btn !== filter);
         btn.classList.toggle('text-on-surface-variant', btn !== filter);
       });
-      document.querySelectorAll('[data-occasion]').forEach(function (card) {
-        card.classList.toggle('hidden', value !== 'all' && card.getAttribute('data-occasion') !== value);
-      });
+      window.applyStyleFilters();
     }
   });
   window.handleNewsletter = function (event, message) {
@@ -274,16 +302,16 @@ tailwind.config = {
 
   <div class="flex flex-wrap gap-3 items-center bg-white p-3 rounded-xl border border-outline-variant/20 soft-shadow mb-8">
     <span class="text-sm text-on-surface-variant flex items-center gap-1"><span class="material-symbols-outlined text-sm">filter_list</span>Filter</span>
-    <select class="rounded-lg border border-outline-variant text-sm px-3 py-2 bg-white focus:border-primary outline-none"><option>Saison</option><option>Spring</option><option>Summer</option><option>Autumn</option><option>Winter</option></select>
-    <select class="rounded-lg border border-outline-variant text-sm px-3 py-2 bg-white focus:border-primary outline-none"><option>Budget</option><option>&lt; $20</option><option>$20 - $50</option><option>&gt; $50</option></select>
-    <select class="rounded-lg border border-outline-variant text-sm px-3 py-2 bg-white focus:border-primary outline-none"><option>Stil</option><option>Casual</option><option>Elegant</option><option>Street</option><option>Vintage</option></select>
+    <select data-filter-season class="rounded-lg border border-outline-variant text-sm px-3 py-2 bg-white focus:border-primary outline-none"><option value="all">Season</option><option value="spring">Spring</option><option value="summer">Summer</option><option value="autumn">Autumn</option><option value="winter">Winter</option></select>
+    <select data-filter-budget class="rounded-lg border border-outline-variant text-sm px-3 py-2 bg-white focus:border-primary outline-none"><option value="all">Budget</option><option value="low">&lt; $20</option><option value="mid">$20 - $50</option><option value="high">&gt; $50</option></select>
+    <select data-filter-style class="rounded-lg border border-outline-variant text-sm px-3 py-2 bg-white focus:border-primary outline-none"><option value="all">Style</option><option value="casual">Casual</option><option value="elegant">Elegant</option><option value="street">Street</option><option value="sport">Sport</option></select>
   </div>
 
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-    
+
 <article class="bg-white rounded-xl soft-shadow overflow-hidden group cursor-pointer border border-outline-variant/20 hover:border-primary/30 transition-colors">
   <div class="relative aspect-[3/4] overflow-hidden bg-surface-variant">
-    <img src="https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=600&q=80" alt="Chic Workwear Set" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy"/>
+    <img src="/assets/images/workwear-blazer.svg" alt="Chic Workwear Set" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy"/>
     <div class="absolute top-2 left-2 bg-[#FFF0F5] text-primary px-2 py-1 rounded-lg text-xs font-bold">Arbeit</div>
   </div>
   <div class="p-4">
@@ -300,7 +328,7 @@ tailwind.config = {
 
 <article class="bg-white rounded-xl soft-shadow overflow-hidden group cursor-pointer border border-outline-variant/20 hover:border-primary/30 transition-colors">
   <div class="relative aspect-[3/4] overflow-hidden bg-surface-variant">
-    <img src="https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=600&q=80" alt="Floral Midi Dress" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy"/>
+    <img src="/assets/images/workwear-blazer.svg" alt="Floral Midi Dress" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy"/>
     <div class="absolute top-2 left-2 bg-[#FFF0F5] text-primary px-2 py-1 rounded-lg text-xs font-bold">Date</div>
   </div>
   <div class="p-4">
@@ -317,7 +345,7 @@ tailwind.config = {
 
 <article class="bg-white rounded-xl soft-shadow overflow-hidden group cursor-pointer border border-outline-variant/20 hover:border-primary/30 transition-colors">
   <div class="relative aspect-[3/4] overflow-hidden bg-surface-variant">
-    <img src="https://images.unsplash.com/photo-1502716119720-b23a93e5fe1b?w=600&q=80" alt="Linen Vacation Set" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy"/>
+    <img src="/assets/images/vacation-flowy-dress.svg" alt="Linen Vacation Set" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy"/>
     <div class="absolute top-2 left-2 bg-[#FFF0F5] text-primary px-2 py-1 rounded-lg text-xs font-bold">Urlaub</div>
   </div>
   <div class="p-4">
@@ -334,7 +362,7 @@ tailwind.config = {
 
 <article class="bg-white rounded-xl soft-shadow overflow-hidden group cursor-pointer border border-outline-variant/20 hover:border-primary/30 transition-colors">
   <div class="relative aspect-[3/4] overflow-hidden bg-surface-variant">
-    <img src="https://images.unsplash.com/photo-1518310383802-640c2de311b2?w=600&q=80" alt="Seamless Yoga Set" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy"/>
+    <img src="/assets/images/yoga-set.svg" alt="Seamless Yoga Set" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy"/>
     <div class="absolute top-2 left-2 bg-[#FFF0F5] text-primary px-2 py-1 rounded-lg text-xs font-bold">Sport</div>
   </div>
   <div class="p-4">
@@ -351,7 +379,7 @@ tailwind.config = {
 
 <article class="bg-white rounded-xl soft-shadow overflow-hidden group cursor-pointer border border-outline-variant/20 hover:border-primary/30 transition-colors">
   <div class="relative aspect-[3/4] overflow-hidden bg-surface-variant">
-    <img src="https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=600&q=80" alt="Sequin Blazer Dress" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy"/>
+    <img src="/assets/images/party-sequin-dress.svg" alt="Sequin Blazer Dress" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy"/>
     <div class="absolute top-2 left-2 bg-[#FFF0F5] text-primary px-2 py-1 rounded-lg text-xs font-bold">Party</div>
   </div>
   <div class="p-4">
@@ -368,7 +396,7 @@ tailwind.config = {
 
 <article class="bg-white rounded-xl soft-shadow overflow-hidden group cursor-pointer border border-outline-variant/20 hover:border-primary/30 transition-colors">
   <div class="relative aspect-[3/4] overflow-hidden bg-surface-variant">
-    <img src="https://images.unsplash.com/photo-1529139574466-a302c27e3844?w=600&q=80" alt="Cotton Shirt & Jeans" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy"/>
+    <img src="/assets/images/shirt-jeans-daily.svg" alt="Cotton Shirt & Jeans" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy"/>
     <div class="absolute top-2 left-2 bg-[#FFF0F5] text-primary px-2 py-1 rounded-lg text-xs font-bold">Alltag</div>
   </div>
   <div class="p-4">
@@ -386,7 +414,7 @@ tailwind.config = {
   </div>
 
   <div class="mt-10 flex justify-center">
-    <button class="bg-white border border-outline-variant text-on-surface px-8 py-3 rounded-full text-sm hover:bg-surface-variant transition-all soft-shadow">Mehr Laden</button>
+    <button type="button" onclick="resetStyleFilters(this)" data-loaded-label="All 6 looks loaded" class="bg-white border border-outline-variant text-on-surface px-8 py-3 rounded-full text-sm hover:bg-surface-variant transition-all soft-shadow">Mehr Laden</button>
   </div>
 </div>
 

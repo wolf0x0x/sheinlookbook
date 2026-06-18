@@ -129,6 +129,36 @@ tailwind.config = {
     menu.classList.toggle('hidden', !willOpen);
     button.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
   };
+
+  window.applyStyleFilters = function () {
+    var active = document.querySelector('[data-style-filter].bg-primary-container');
+    var occasion = active ? active.getAttribute('data-style-filter') : 'all';
+    var season = (document.querySelector('[data-filter-season]') || {}).value || 'all';
+    var budget = (document.querySelector('[data-filter-budget]') || {}).value || 'all';
+    var style = (document.querySelector('[data-filter-style]') || {}).value || 'all';
+    document.querySelectorAll('[data-occasion]').forEach(function (card) {
+      var show = (occasion === 'all' || card.getAttribute('data-occasion') === occasion) &&
+        (season === 'all' || card.getAttribute('data-season') === season) &&
+        (budget === 'all' || card.getAttribute('data-budget') === budget) &&
+        (style === 'all' || card.getAttribute('data-style') === style);
+      card.classList.toggle('hidden', !show);
+    });
+  };
+  window.resetStyleFilters = function (button) {
+    document.querySelectorAll('[data-style-filter]').forEach(function (btn) {
+      var isAll = btn.getAttribute('data-style-filter') === 'all';
+      btn.classList.toggle('bg-primary-container', isAll);
+      btn.classList.toggle('text-on-primary-container', isAll);
+      btn.classList.toggle('bg-surface-variant', !isAll);
+      btn.classList.toggle('text-on-surface-variant', !isAll);
+    });
+    document.querySelectorAll('[data-filter-season], [data-filter-budget], [data-filter-style]').forEach(function (select) { select.value = 'all'; });
+    window.applyStyleFilters();
+    if (button) button.textContent = button.getAttribute('data-loaded-label') || 'All items loaded';
+  };
+  document.addEventListener('change', function (event) {
+    if (event.target.matches('[data-filter-season], [data-filter-budget], [data-filter-style]')) window.applyStyleFilters();
+  });
   document.addEventListener('click', function (event) {
     if (!event.target.closest('[data-language-switcher]')) closeLanguageMenus();
   });
@@ -151,9 +181,7 @@ tailwind.config = {
         btn.classList.toggle('bg-surface-variant', btn !== filter);
         btn.classList.toggle('text-on-surface-variant', btn !== filter);
       });
-      document.querySelectorAll('[data-occasion]').forEach(function (card) {
-        card.classList.toggle('hidden', value !== 'all' && card.getAttribute('data-occasion') !== value);
-      });
+      window.applyStyleFilters();
     }
   });
   window.handleNewsletter = function (event, message) {
@@ -271,7 +299,7 @@ tailwind.config = {
       </div>
     </div>
     <div class="hidden md:block relative h-80">
-      <img src="https://images.unsplash.com/photo-1483985988355-763728e1935b?w=800&q=80" alt="Shein Fashion Guide" class="w-full h-full object-cover rounded-2xl soft-shadow" loading="lazy"/>
+      <img src="/assets/images/hero-fashion.svg" alt="Shein Fashion Guide" class="w-full h-full object-cover rounded-2xl soft-shadow" loading="lazy"/>
     </div>
   </div>
 </section>
@@ -343,7 +371,7 @@ tailwind.config = {
   <h2 class="font-headline-md text-on-surface mb-6">Weekly Picks</h2>
   <div class="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[280px]">
     <div class="md:col-span-2 md:row-span-2 relative rounded-xl overflow-hidden soft-shadow group cursor-pointer">
-      <img src="https://images.unsplash.com/photo-1502716119720-b23a93e5fe1b?w=600&q=80" alt="Vacation Style" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy"/>
+      <img src="/assets/images/vacation-flowy-dress.svg" alt="Vacation Style" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy"/>
       <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
       <div class="absolute bottom-0 left-0 right-0 p-6">
         <span class="inline-block px-2 py-1 bg-white/20 backdrop-blur-md rounded text-white text-xs font-bold mb-2 border border-white/30">SCENE: VACATION</span>
@@ -352,14 +380,14 @@ tailwind.config = {
       </div>
     </div>
     <div class="relative rounded-xl overflow-hidden soft-shadow group cursor-pointer">
-      <img src="https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=600&q=80" alt="Accessories" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy"/>
+      <img src="/assets/images/gold-layered-necklaces.svg" alt="Accessories" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy"/>
       <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-white via-white/80 to-transparent">
         <span class="inline-block px-2 py-1 bg-[#FFF0F5] text-primary rounded-lg text-xs font-bold mb-1">TRENDING</span>
         <h3 class="font-title-sm text-on-surface">Chunky Gold Layers</h3>
       </div>
     </div>
     <div class="relative rounded-xl overflow-hidden soft-shadow group cursor-pointer">
-      <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600&q=80" alt="Streetwear" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy"/>
+      <img src="/assets/images/streetwear-city.svg" alt="Streetwear" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy"/>
       <div class="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-white via-white/80 to-transparent">
         <span class="inline-block px-2 py-1 bg-[#FFF0F5] text-primary rounded-lg text-xs font-bold mb-1">STREETWEAR</span>
         <h3 class="font-title-sm text-on-surface">City Casual</h3>

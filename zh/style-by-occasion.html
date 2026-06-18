@@ -129,6 +129,36 @@ tailwind.config = {
     menu.classList.toggle('hidden', !willOpen);
     button.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
   };
+
+  window.applyStyleFilters = function () {
+    var active = document.querySelector('[data-style-filter].bg-primary-container');
+    var occasion = active ? active.getAttribute('data-style-filter') : 'all';
+    var season = (document.querySelector('[data-filter-season]') || {}).value || 'all';
+    var budget = (document.querySelector('[data-filter-budget]') || {}).value || 'all';
+    var style = (document.querySelector('[data-filter-style]') || {}).value || 'all';
+    document.querySelectorAll('[data-occasion]').forEach(function (card) {
+      var show = (occasion === 'all' || card.getAttribute('data-occasion') === occasion) &&
+        (season === 'all' || card.getAttribute('data-season') === season) &&
+        (budget === 'all' || card.getAttribute('data-budget') === budget) &&
+        (style === 'all' || card.getAttribute('data-style') === style);
+      card.classList.toggle('hidden', !show);
+    });
+  };
+  window.resetStyleFilters = function (button) {
+    document.querySelectorAll('[data-style-filter]').forEach(function (btn) {
+      var isAll = btn.getAttribute('data-style-filter') === 'all';
+      btn.classList.toggle('bg-primary-container', isAll);
+      btn.classList.toggle('text-on-primary-container', isAll);
+      btn.classList.toggle('bg-surface-variant', !isAll);
+      btn.classList.toggle('text-on-surface-variant', !isAll);
+    });
+    document.querySelectorAll('[data-filter-season], [data-filter-budget], [data-filter-style]').forEach(function (select) { select.value = 'all'; });
+    window.applyStyleFilters();
+    if (button) button.textContent = button.getAttribute('data-loaded-label') || 'All items loaded';
+  };
+  document.addEventListener('change', function (event) {
+    if (event.target.matches('[data-filter-season], [data-filter-budget], [data-filter-style]')) window.applyStyleFilters();
+  });
   document.addEventListener('click', function (event) {
     if (!event.target.closest('[data-language-switcher]')) closeLanguageMenus();
   });
@@ -151,9 +181,7 @@ tailwind.config = {
         btn.classList.toggle('bg-surface-variant', btn !== filter);
         btn.classList.toggle('text-on-surface-variant', btn !== filter);
       });
-      document.querySelectorAll('[data-occasion]').forEach(function (card) {
-        card.classList.toggle('hidden', value !== 'all' && card.getAttribute('data-occasion') !== value);
-      });
+      window.applyStyleFilters();
     }
   });
   window.handleNewsletter = function (event, message) {
@@ -274,16 +302,16 @@ tailwind.config = {
 
   <div class="flex flex-wrap gap-3 items-center bg-white p-3 rounded-xl border border-outline-variant/20 soft-shadow mb-8">
     <span class="text-sm text-on-surface-variant flex items-center gap-1"><span class="material-symbols-outlined text-sm">filter_list</span>筛选</span>
-    <select class="rounded-lg border border-outline-variant text-sm px-3 py-2 bg-white focus:border-primary outline-none"><option>季节</option><option>春季</option><option>夏季</option><option>秋季</option><option>冬季</option></select>
-    <select class="rounded-lg border border-outline-variant text-sm px-3 py-2 bg-white focus:border-primary outline-none"><option>预算</option><option>&lt; $20</option><option>$20 - $50</option><option>&gt; $50</option></select>
-    <select class="rounded-lg border border-outline-variant text-sm px-3 py-2 bg-white focus:border-primary outline-none"><option>风格</option><option>休闲</option><option>优雅</option><option>街头</option><option>复古</option></select>
+    <select data-filter-season class="rounded-lg border border-outline-variant text-sm px-3 py-2 bg-white focus:border-primary outline-none"><option value="all">季节</option><option value="spring">春季</option><option value="summer">夏季</option><option value="autumn">秋季</option><option value="winter">冬季</option></select>
+    <select data-filter-budget class="rounded-lg border border-outline-variant text-sm px-3 py-2 bg-white focus:border-primary outline-none"><option value="all">预算</option><option value="low">&lt; $20</option><option value="mid">$20 - $50</option><option value="high">&gt; $50</option></select>
+    <select data-filter-style class="rounded-lg border border-outline-variant text-sm px-3 py-2 bg-white focus:border-primary outline-none"><option value="all">风格</option><option value="casual">休闲</option><option value="elegant">优雅</option><option value="street">街头</option><option value="sport">运动</option></select>
   </div>
 
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-    
-<article data-occasion="work" class="bg-white rounded-xl soft-shadow overflow-hidden group cursor-pointer border border-outline-variant/20 hover:border-primary/30 transition-colors">
+
+<article data-occasion="work" data-season="autumn" data-budget="mid" data-style="elegant" class="bg-white rounded-xl soft-shadow overflow-hidden group cursor-pointer border border-outline-variant/20 hover:border-primary/30 transition-colors">
   <div class="relative aspect-[3/4] overflow-hidden bg-surface-variant">
-    <img src="https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=600&q=80" alt="通勤轻熟风套装" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy"/>
+    <img src="/assets/images/workwear-blazer.svg" alt="通勤轻熟风套装" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy"/>
     <div class="absolute top-2 left-2 bg-[#FFF0F5] text-primary px-2 py-1 rounded-lg text-xs font-bold">通勤</div>
   </div>
   <div class="p-4">
@@ -298,9 +326,9 @@ tailwind.config = {
   </div>
 </article>
 
-<article data-occasion="date" class="bg-white rounded-xl soft-shadow overflow-hidden group cursor-pointer border border-outline-variant/20 hover:border-primary/30 transition-colors">
+<article data-occasion="date" data-season="spring" data-budget="mid" data-style="elegant" class="bg-white rounded-xl soft-shadow overflow-hidden group cursor-pointer border border-outline-variant/20 hover:border-primary/30 transition-colors">
   <div class="relative aspect-[3/4] overflow-hidden bg-surface-variant">
-    <img src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=600&q=80" alt="法式碎花连衣裙" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy"/>
+    <img src="/assets/images/floral-midi-dress.svg" alt="法式碎花连衣裙" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy"/>
     <div class="absolute top-2 left-2 bg-[#FFF0F5] text-primary px-2 py-1 rounded-lg text-xs font-bold">约会</div>
   </div>
   <div class="p-4">
@@ -315,9 +343,9 @@ tailwind.config = {
   </div>
 </article>
 
-<article data-occasion="vacation" class="bg-white rounded-xl soft-shadow overflow-hidden group cursor-pointer border border-outline-variant/20 hover:border-primary/30 transition-colors">
+<article data-occasion="vacation" data-season="summer" data-budget="high" data-style="casual" class="bg-white rounded-xl soft-shadow overflow-hidden group cursor-pointer border border-outline-variant/20 hover:border-primary/30 transition-colors">
   <div class="relative aspect-[3/4] overflow-hidden bg-surface-variant">
-    <img src="https://images.unsplash.com/photo-1502716119720-b23a93e5fe1b?w=600&q=80" alt="海岛度假亚麻套装" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy"/>
+    <img src="/assets/images/vacation-flowy-dress.svg" alt="海岛度假亚麻套装" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy"/>
     <div class="absolute top-2 left-2 bg-[#FFF0F5] text-primary px-2 py-1 rounded-lg text-xs font-bold">度假</div>
   </div>
   <div class="p-4">
@@ -332,9 +360,9 @@ tailwind.config = {
   </div>
 </article>
 
-<article data-occasion="sport" class="bg-white rounded-xl soft-shadow overflow-hidden group cursor-pointer border border-outline-variant/20 hover:border-primary/30 transition-colors">
+<article data-occasion="sport" data-season="summer" data-budget="mid" data-style="sport" class="bg-white rounded-xl soft-shadow overflow-hidden group cursor-pointer border border-outline-variant/20 hover:border-primary/30 transition-colors">
   <div class="relative aspect-[3/4] overflow-hidden bg-surface-variant">
-    <img src="https://images.unsplash.com/photo-1518310383802-640c2de311b2?w=600&q=80" alt="无缝高弹瑜伽套装" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy"/>
+    <img src="/assets/images/yoga-set.svg" alt="无缝高弹瑜伽套装" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy"/>
     <div class="absolute top-2 left-2 bg-[#FFF0F5] text-primary px-2 py-1 rounded-lg text-xs font-bold">运动</div>
   </div>
   <div class="p-4">
@@ -349,9 +377,9 @@ tailwind.config = {
   </div>
 </article>
 
-<article data-occasion="party" class="bg-white rounded-xl soft-shadow overflow-hidden group cursor-pointer border border-outline-variant/20 hover:border-primary/30 transition-colors">
+<article data-occasion="party" data-season="winter" data-budget="high" data-style="elegant" class="bg-white rounded-xl soft-shadow overflow-hidden group cursor-pointer border border-outline-variant/20 hover:border-primary/30 transition-colors">
   <div class="relative aspect-[3/4] overflow-hidden bg-surface-variant">
-    <img src="https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=600&q=80" alt="亮片拼接西装裙" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy"/>
+    <img src="/assets/images/party-sequin-dress.svg" alt="亮片拼接西装裙" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy"/>
     <div class="absolute top-2 left-2 bg-[#FFF0F5] text-primary px-2 py-1 rounded-lg text-xs font-bold">派对</div>
   </div>
   <div class="p-4">
@@ -366,9 +394,9 @@ tailwind.config = {
   </div>
 </article>
 
-<article data-occasion="daily" class="bg-white rounded-xl soft-shadow overflow-hidden group cursor-pointer border border-outline-variant/20 hover:border-primary/30 transition-colors">
+<article data-occasion="daily" data-season="spring" data-budget="mid" data-style="casual" class="bg-white rounded-xl soft-shadow overflow-hidden group cursor-pointer border border-outline-variant/20 hover:border-primary/30 transition-colors">
   <div class="relative aspect-[3/4] overflow-hidden bg-surface-variant">
-    <img src="https://images.unsplash.com/photo-1529139574466-a302c27e3844?w=600&q=80" alt="纯棉宽松衬衫牛仔裤组合" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy"/>
+    <img src="/assets/images/shirt-jeans-daily.svg" alt="纯棉宽松衬衫牛仔裤组合" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy"/>
     <div class="absolute top-2 left-2 bg-[#FFF0F5] text-primary px-2 py-1 rounded-lg text-xs font-bold">日常</div>
   </div>
   <div class="p-4">
@@ -386,7 +414,7 @@ tailwind.config = {
   </div>
 
   <div class="mt-10 flex justify-center">
-    <button class="bg-white border border-outline-variant text-on-surface px-8 py-3 rounded-full text-sm hover:bg-surface-variant transition-all soft-shadow">加载更多</button>
+    <button type="button" onclick="resetStyleFilters(this)" data-loaded-label="全部 6 套已加载" class="bg-white border border-outline-variant text-on-surface px-8 py-3 rounded-full text-sm hover:bg-surface-variant transition-all soft-shadow">加载更多</button>
   </div>
 </div>
 

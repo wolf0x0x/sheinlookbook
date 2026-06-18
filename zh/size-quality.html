@@ -129,6 +129,36 @@ tailwind.config = {
     menu.classList.toggle('hidden', !willOpen);
     button.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
   };
+
+  window.applyStyleFilters = function () {
+    var active = document.querySelector('[data-style-filter].bg-primary-container');
+    var occasion = active ? active.getAttribute('data-style-filter') : 'all';
+    var season = (document.querySelector('[data-filter-season]') || {}).value || 'all';
+    var budget = (document.querySelector('[data-filter-budget]') || {}).value || 'all';
+    var style = (document.querySelector('[data-filter-style]') || {}).value || 'all';
+    document.querySelectorAll('[data-occasion]').forEach(function (card) {
+      var show = (occasion === 'all' || card.getAttribute('data-occasion') === occasion) &&
+        (season === 'all' || card.getAttribute('data-season') === season) &&
+        (budget === 'all' || card.getAttribute('data-budget') === budget) &&
+        (style === 'all' || card.getAttribute('data-style') === style);
+      card.classList.toggle('hidden', !show);
+    });
+  };
+  window.resetStyleFilters = function (button) {
+    document.querySelectorAll('[data-style-filter]').forEach(function (btn) {
+      var isAll = btn.getAttribute('data-style-filter') === 'all';
+      btn.classList.toggle('bg-primary-container', isAll);
+      btn.classList.toggle('text-on-primary-container', isAll);
+      btn.classList.toggle('bg-surface-variant', !isAll);
+      btn.classList.toggle('text-on-surface-variant', !isAll);
+    });
+    document.querySelectorAll('[data-filter-season], [data-filter-budget], [data-filter-style]').forEach(function (select) { select.value = 'all'; });
+    window.applyStyleFilters();
+    if (button) button.textContent = button.getAttribute('data-loaded-label') || 'All items loaded';
+  };
+  document.addEventListener('change', function (event) {
+    if (event.target.matches('[data-filter-season], [data-filter-budget], [data-filter-style]')) window.applyStyleFilters();
+  });
   document.addEventListener('click', function (event) {
     if (!event.target.closest('[data-language-switcher]')) closeLanguageMenus();
   });
@@ -151,9 +181,7 @@ tailwind.config = {
         btn.classList.toggle('bg-surface-variant', btn !== filter);
         btn.classList.toggle('text-on-surface-variant', btn !== filter);
       });
-      document.querySelectorAll('[data-occasion]').forEach(function (card) {
-        card.classList.toggle('hidden', value !== 'all' && card.getAttribute('data-occasion') !== value);
-      });
+      window.applyStyleFilters();
     }
   });
   window.handleNewsletter = function (event, message) {
@@ -301,16 +329,16 @@ tailwind.config = {
       <h2 class="font-title-sm text-on-surface mb-4 flex items-center gap-2"><span class="material-symbols-outlined text-secondary">texture</span> 面料材质库速查</h2>
       <div class="relative mb-4">
         <span class="material-symbols-outlined absolute left-3 top-2 text-outline">search</span>
-        <input type="text" placeholder="搜索面料 (如: 聚酯纤维)" class="w-full rounded-lg border border-outline-variant pl-10 pr-3 py-2 bg-white focus:border-primary outline-none text-sm"/>
+        <input type="text" placeholder="搜索面料 (如: 聚酯纤维（Polyester）)" class="w-full rounded-lg border border-outline-variant pl-10 pr-3 py-2 bg-white focus:border-primary outline-none text-sm"/>
       </div>
       <div class="space-y-3">
         <div class="p-3 bg-surface-container-low rounded-lg border border-outline-variant hover:border-primary transition-colors cursor-pointer">
-          <div class="flex justify-between items-center mb-2"><span class="text-xs font-bold">聚酯纤维</span><span class="px-2 py-0.5 rounded bg-secondary-fixed text-on-secondary-fixed text-[10px] font-bold">常见</span></div>
+          <div class="flex justify-between items-center mb-2"><span class="text-xs font-bold">聚酯纤维（Polyester）</span><span class="px-2 py-0.5 rounded bg-secondary-fixed text-on-secondary-fixed text-[10px] font-bold">常见</span></div>
           <div class="space-y-1"><div class="flex justify-between text-xs text-on-surface-variant"><span>透气性</span><span>6/10</span></div><div class="w-full bg-outline-variant rounded-full h-1"><div class="bg-primary h-1 rounded-full" style="width:60%"></div></div></div>
           <div class="space-y-1 mt-1"><div class="flex justify-between text-xs text-on-surface-variant"><span>耐穿度</span><span>8/10</span></div><div class="w-full bg-outline-variant rounded-full h-1"><div class="bg-primary h-1 rounded-full" style="width:80%"></div></div></div>
         </div>
         <div class="p-3 bg-surface-container-low rounded-lg border border-outline-variant hover:border-primary transition-colors cursor-pointer">
-          <div class="flex justify-between items-center mb-2"><span class="text-xs font-bold">粘胶纤维</span><span class="px-2 py-0.5 rounded bg-tertiary-fixed text-on-tertiary-fixed text-[10px] font-bold">舒适</span></div>
+          <div class="flex justify-between items-center mb-2"><span class="text-xs font-bold">粘胶纤维（Viscose）</span><span class="px-2 py-0.5 rounded bg-tertiary-fixed text-on-tertiary-fixed text-[10px] font-bold">舒适</span></div>
           <div class="space-y-1"><div class="flex justify-between text-xs text-on-surface-variant"><span>透气性</span><span>8/10</span></div><div class="w-full bg-outline-variant rounded-full h-1"><div class="bg-tertiary h-1 rounded-full" style="width:80%"></div></div></div>
           <div class="space-y-1 mt-1"><div class="flex justify-between text-xs text-on-surface-variant"><span>易皱度</span><span>4/10</span></div><div class="w-full bg-outline-variant rounded-full h-1"><div class="bg-error h-1 rounded-full" style="width:40%"></div></div></div>
         </div>

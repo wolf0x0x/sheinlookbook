@@ -129,6 +129,36 @@ tailwind.config = {
     menu.classList.toggle('hidden', !willOpen);
     button.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
   };
+
+  window.applyStyleFilters = function () {
+    var active = document.querySelector('[data-style-filter].bg-primary-container');
+    var occasion = active ? active.getAttribute('data-style-filter') : 'all';
+    var season = (document.querySelector('[data-filter-season]') || {}).value || 'all';
+    var budget = (document.querySelector('[data-filter-budget]') || {}).value || 'all';
+    var style = (document.querySelector('[data-filter-style]') || {}).value || 'all';
+    document.querySelectorAll('[data-occasion]').forEach(function (card) {
+      var show = (occasion === 'all' || card.getAttribute('data-occasion') === occasion) &&
+        (season === 'all' || card.getAttribute('data-season') === season) &&
+        (budget === 'all' || card.getAttribute('data-budget') === budget) &&
+        (style === 'all' || card.getAttribute('data-style') === style);
+      card.classList.toggle('hidden', !show);
+    });
+  };
+  window.resetStyleFilters = function (button) {
+    document.querySelectorAll('[data-style-filter]').forEach(function (btn) {
+      var isAll = btn.getAttribute('data-style-filter') === 'all';
+      btn.classList.toggle('bg-primary-container', isAll);
+      btn.classList.toggle('text-on-primary-container', isAll);
+      btn.classList.toggle('bg-surface-variant', !isAll);
+      btn.classList.toggle('text-on-surface-variant', !isAll);
+    });
+    document.querySelectorAll('[data-filter-season], [data-filter-budget], [data-filter-style]').forEach(function (select) { select.value = 'all'; });
+    window.applyStyleFilters();
+    if (button) button.textContent = button.getAttribute('data-loaded-label') || 'All items loaded';
+  };
+  document.addEventListener('change', function (event) {
+    if (event.target.matches('[data-filter-season], [data-filter-budget], [data-filter-style]')) window.applyStyleFilters();
+  });
   document.addEventListener('click', function (event) {
     if (!event.target.closest('[data-language-switcher]')) closeLanguageMenus();
   });
@@ -151,9 +181,7 @@ tailwind.config = {
         btn.classList.toggle('bg-surface-variant', btn !== filter);
         btn.classList.toggle('text-on-surface-variant', btn !== filter);
       });
-      document.querySelectorAll('[data-occasion]').forEach(function (card) {
-        card.classList.toggle('hidden', value !== 'all' && card.getAttribute('data-occasion') !== value);
-      });
+      window.applyStyleFilters();
     }
   });
   window.handleNewsletter = function (event, message) {
@@ -326,21 +354,21 @@ tailwind.config = {
     <h2 class="font-headline-md text-on-surface">Regional Shopping Tips</h2>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       <div class="bg-white rounded-xl soft-shadow overflow-hidden border border-outline-variant/20 group">
-        <div class="h-40 overflow-hidden relative"><img src="https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=600&q=80" alt="Japan" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy"/><div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div><div class="absolute bottom-3 left-3 flex items-center gap-2"><span class="text-2xl">🇯🇵</span><h3 class="text-white font-bold text-sm">Japan</h3></div></div>
+        <div class="h-40 overflow-hidden relative"><img src="/assets/images/regional-japan.svg" alt="Japan" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy"/><div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div><div class="absolute bottom-3 left-3 flex items-center gap-2"><span class="text-2xl">🇯🇵</span><h3 class="text-white font-bold text-sm">Japan</h3></div></div>
         <div class="p-4 space-y-2 text-sm text-on-surface-variant">
           <p class="flex items-start gap-2"><span class="material-symbols-outlined text-primary text-sm">straighten</span><span><strong>Smaller fit:</strong> Japanese lines (e.g., Dazy) run 1-2 sizes smaller than US/EU.</span></p>
           <p class="flex items-start gap-2"><span class="material-symbols-outlined text-primary text-sm">local_shipping</span><span><strong>Fast delivery:</strong> 4-7 days, supports convenience store pickup.</span></p>
         </div>
       </div>
       <div class="bg-white rounded-xl soft-shadow overflow-hidden border border-outline-variant/20 group">
-        <div class="h-40 overflow-hidden relative"><img src="https://images.unsplash.com/photo-1483729558449-99ef09a8c325?w=600&q=80" alt="Brazil" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy"/><div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div><div class="absolute bottom-3 left-3 flex items-center gap-2"><span class="text-2xl">🇧🇷</span><h3 class="text-white font-bold text-sm">Brazil</h3></div></div>
+        <div class="h-40 overflow-hidden relative"><img src="/assets/images/regional-brazil.svg" alt="Brazil" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy"/><div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div><div class="absolute bottom-3 left-3 flex items-center gap-2"><span class="text-2xl">🇧🇷</span><h3 class="text-white font-bold text-sm">Brazil</h3></div></div>
         <div class="p-4 space-y-2 text-sm text-on-surface-variant">
           <p class="flex items-start gap-2"><span class="material-symbols-outlined text-primary text-sm">credit_card</span><span><strong>Installments:</strong> Credit card installments up to 6-12 months, interest-free.</span></p>
           <p class="flex items-start gap-2"><span class="material-symbols-outlined text-error text-sm">gavel</span><span><strong>Tax strict:</strong> Remessa Conforme; 17% ICMS state tax at checkout.</span></p>
         </div>
       </div>
       <div class="bg-white rounded-xl soft-shadow overflow-hidden border border-outline-variant/20 group">
-        <div class="h-40 overflow-hidden relative"><img src="https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=600&q=80" alt="UAE" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy"/><div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div><div class="absolute bottom-3 left-3 flex items-center gap-2"><span class="text-2xl">🇦🇪</span><h3 class="text-white font-bold text-sm">UAE</h3></div></div>
+        <div class="h-40 overflow-hidden relative"><img src="/assets/images/regional-uae.svg" alt="UAE" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy"/><div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div><div class="absolute bottom-3 left-3 flex items-center gap-2"><span class="text-2xl">🇦🇪</span><h3 class="text-white font-bold text-sm">UAE</h3></div></div>
         <div class="p-4 space-y-2 text-sm text-on-surface-variant">
           <p class="flex items-start gap-2"><span class="material-symbols-outlined text-primary text-sm">checkroom</span><span><strong>Modest fashion:</strong> Dedicated modest lines, breathable fabrics for sun protection.</span></p>
           <p class="flex items-start gap-2"><span class="material-symbols-outlined text-primary text-sm">payments</span><span><strong>COD available:</strong> Cash on delivery widely supported; small fee may apply.</span></p>

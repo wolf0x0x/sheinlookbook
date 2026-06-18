@@ -129,6 +129,36 @@ tailwind.config = {
     menu.classList.toggle('hidden', !willOpen);
     button.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
   };
+
+  window.applyStyleFilters = function () {
+    var active = document.querySelector('[data-style-filter].bg-primary-container');
+    var occasion = active ? active.getAttribute('data-style-filter') : 'all';
+    var season = (document.querySelector('[data-filter-season]') || {}).value || 'all';
+    var budget = (document.querySelector('[data-filter-budget]') || {}).value || 'all';
+    var style = (document.querySelector('[data-filter-style]') || {}).value || 'all';
+    document.querySelectorAll('[data-occasion]').forEach(function (card) {
+      var show = (occasion === 'all' || card.getAttribute('data-occasion') === occasion) &&
+        (season === 'all' || card.getAttribute('data-season') === season) &&
+        (budget === 'all' || card.getAttribute('data-budget') === budget) &&
+        (style === 'all' || card.getAttribute('data-style') === style);
+      card.classList.toggle('hidden', !show);
+    });
+  };
+  window.resetStyleFilters = function (button) {
+    document.querySelectorAll('[data-style-filter]').forEach(function (btn) {
+      var isAll = btn.getAttribute('data-style-filter') === 'all';
+      btn.classList.toggle('bg-primary-container', isAll);
+      btn.classList.toggle('text-on-primary-container', isAll);
+      btn.classList.toggle('bg-surface-variant', !isAll);
+      btn.classList.toggle('text-on-surface-variant', !isAll);
+    });
+    document.querySelectorAll('[data-filter-season], [data-filter-budget], [data-filter-style]').forEach(function (select) { select.value = 'all'; });
+    window.applyStyleFilters();
+    if (button) button.textContent = button.getAttribute('data-loaded-label') || 'All items loaded';
+  };
+  document.addEventListener('change', function (event) {
+    if (event.target.matches('[data-filter-season], [data-filter-budget], [data-filter-style]')) window.applyStyleFilters();
+  });
   document.addEventListener('click', function (event) {
     if (!event.target.closest('[data-language-switcher]')) closeLanguageMenus();
   });
@@ -151,9 +181,7 @@ tailwind.config = {
         btn.classList.toggle('bg-surface-variant', btn !== filter);
         btn.classList.toggle('text-on-surface-variant', btn !== filter);
       });
-      document.querySelectorAll('[data-occasion]').forEach(function (card) {
-        card.classList.toggle('hidden', value !== 'all' && card.getAttribute('data-occasion') !== value);
-      });
+      window.applyStyleFilters();
     }
   });
   window.handleNewsletter = function (event, message) {
@@ -261,7 +289,7 @@ tailwind.config = {
 
 <div class="max-w-[1280px] mx-auto px-4 md:px-10 pt-8 pb-12 bg-pattern min-h-screen">
   <header class="text-center mb-16 max-w-3xl mx-auto">
-    <span class="inline-block px-4 py-2 bg-primary-fixed text-on-primary-fixed rounded-full text-xs font-bold mb-4">Sustainability & Ethics</span>
+    <span class="inline-block px-4 py-2 bg-primary-fixed text-on-primary-fixed rounded-full text-xs font-bold mb-4">可持续与伦理观察</span>
     <h1 class="font-display-lg text-on-surface mb-4">快时尚的环境足迹</h1>
     <p class="font-headline-md text-on-surface-variant opacity-80">知情消费，从了解开始</p>
   </header>
@@ -272,7 +300,7 @@ tailwind.config = {
       <div class="absolute top-0 right-0 w-32 h-32 bg-primary opacity-10 rounded-bl-full"></div>
       <div class="relative z-10">
         <div class="flex items-center gap-3 mb-4"><span class="material-symbols-outlined text-primary text-3xl">science</span><h2 class="font-title-sm">面料依赖</h2></div>
-        <p class="text-sm text-on-surface-variant mb-8">Shein womenswear relies heavily on polyester, a petroleum-based synthetic fiber that is difficult to degrade naturally.</p>
+        <p class="text-sm text-on-surface-variant mb-8">Shein 女装大量使用聚酯纤维等石化合成材料，这类面料价格低、易打理，但自然降解难度较高。</p>
         <div class="flex items-end gap-4"><div class="text-6xl font-black text-primary">60%</div><div class="text-xs font-bold text-on-surface-variant pb-2">聚酯纤维</div></div>
         <div class="w-full h-3 bg-surface-variant rounded-full mt-4 overflow-hidden"><div class="h-full bg-primary rounded-full w-[60%]"></div></div>
       </div>
@@ -283,8 +311,8 @@ tailwind.config = {
       <div class="absolute bottom-0 right-0 w-32 h-32 bg-secondary opacity-10 rounded-tl-full"></div>
       <div class="relative z-10">
         <div class="flex items-center gap-3 mb-4"><span class="material-symbols-outlined text-secondary text-3xl">co2</span><h2 class="font-title-sm">碳排放影响</h2></div>
-        <p class="text-sm text-on-surface-variant mb-8">Fast fashion's high-frequency production and shipping contribute significantly to global climate change.</p>
-        <div class="flex items-end gap-4"><div class="text-6xl font-black text-secondary">10%</div><div class="text-xs font-bold text-on-surface-variant pb-2">Global emissions</div></div>
+        <p class="text-sm text-on-surface-variant mb-8">快时尚的高频生产、跨境运输与退货处理会显著增加碳排放压力。</p>
+        <div class="flex items-end gap-4"><div class="text-6xl font-black text-secondary">10%</div><div class="text-xs font-bold text-on-surface-variant pb-2">全球排放占比</div></div>
         <div class="flex flex-wrap gap-1 mt-4"><div class="w-4 h-4 rounded-full bg-secondary"></div><div class="w-4 h-4 rounded-full bg-surface-variant"></div><div class="w-4 h-4 rounded-full bg-surface-variant"></div><div class="w-4 h-4 rounded-full bg-surface-variant"></div><div class="w-4 h-4 rounded-full bg-surface-variant"></div><div class="w-4 h-4 rounded-full bg-surface-variant"></div><div class="w-4 h-4 rounded-full bg-surface-variant"></div><div class="w-4 h-4 rounded-full bg-surface-variant"></div><div class="w-4 h-4 rounded-full bg-surface-variant"></div><div class="w-4 h-4 rounded-full bg-surface-variant"></div></div>
       </div>
     </div>
@@ -296,20 +324,20 @@ tailwind.config = {
         <div class="relative pl-8">
           <div class="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-primary ring-4 ring-white"></div>
           <div class="text-xs font-bold text-primary mb-1">2022</div>
-          <h3 class="font-title-sm text-on-surface mb-1">Emission Reduction Commitment</h3>
-          <p class="text-sm text-on-surface-variant">Announced plan to reduce supply-chain GHG emissions by 25% by 2030.</p>
+          <h3 class="font-title-sm text-on-surface mb-1">减排承诺</h3>
+          <p class="text-sm text-on-surface-variant">公布计划：到 2030 年将供应链温室气体排放减少 25%。</p>
         </div>
         <div class="relative pl-8">
           <div class="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-outline-variant ring-4 ring-white"></div>
           <div class="text-xs font-bold text-outline mb-1">2023</div>
-          <h3 class="font-title-sm text-on-surface mb-1">Independent Report Disclosure</h3>
-          <p class="text-sm text-on-surface-variant">Third-party reports noted actual emissions were still rising; supply-chain transparency questioned.</p>
+          <h3 class="font-title-sm text-on-surface mb-1">独立报告披露</h3>
+          <p class="text-sm text-on-surface-variant">第三方报告指出实际排放仍在上升，供应链透明度也持续受到质疑。</p>
         </div>
         <div class="relative pl-8">
           <div class="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-secondary ring-4 ring-white"></div>
           <div class="text-xs font-bold text-secondary mb-1">2024</div>
-          <h3 class="font-title-sm text-on-surface mb-1">Recycled Materials Initiative</h3>
-          <p class="text-sm text-on-surface-variant">Increased recycled polyester ratio in select lines and launched second-hand platform pilot.</p>
+          <h3 class="font-title-sm text-on-surface mb-1">再生材料计划</h3>
+          <p class="text-sm text-on-surface-variant">在部分系列中提高再生聚酯纤维比例，并试点二手转售平台。</p>
         </div>
       </div>
     </div>
