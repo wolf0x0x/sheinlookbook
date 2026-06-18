@@ -114,6 +114,102 @@ tailwind.config = {
     .font-title-sm { font-size: 18px; }
   }
 </style>
+
+<script>
+(function () {
+  function closeLanguageMenus(except) {
+    document.querySelectorAll('[data-language-menu]').forEach(function (menu) {
+      if (menu !== except) menu.classList.add('hidden');
+    });
+  }
+  window.toggleLanguageMenu = function (button) {
+    var menu = button.nextElementSibling;
+    var willOpen = menu.classList.contains('hidden');
+    closeLanguageMenus(menu);
+    menu.classList.toggle('hidden', !willOpen);
+    button.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+  };
+  document.addEventListener('click', function (event) {
+    if (!event.target.closest('[data-language-switcher]')) closeLanguageMenus();
+  });
+  document.addEventListener('click', function (event) {
+    var copyButton = event.target.closest('[data-copy-code]');
+    if (copyButton) {
+      var code = copyButton.getAttribute('data-copy-code');
+      navigator.clipboard && navigator.clipboard.writeText(code);
+      copyButton.textContent = copyButton.getAttribute('data-copied-label') || 'Copied';
+      setTimeout(function () {
+        copyButton.textContent = copyButton.getAttribute('data-copy-label') || code;
+      }, 1600);
+    }
+    var filter = event.target.closest('[data-style-filter]');
+    if (filter) {
+      var value = filter.getAttribute('data-style-filter');
+      document.querySelectorAll('[data-style-filter]').forEach(function (btn) {
+        btn.classList.toggle('bg-primary-container', btn === filter);
+        btn.classList.toggle('text-on-primary-container', btn === filter);
+        btn.classList.toggle('bg-surface-variant', btn !== filter);
+        btn.classList.toggle('text-on-surface-variant', btn !== filter);
+      });
+      document.querySelectorAll('[data-occasion]').forEach(function (card) {
+        card.classList.toggle('hidden', value !== 'all' && card.getAttribute('data-occasion') !== value);
+      });
+    }
+  });
+  window.handleNewsletter = function (event, message) {
+    event.preventDefault();
+    var form = event.currentTarget;
+    var input = form.querySelector('input[type="email"]');
+    if (!input || !input.checkValidity()) return;
+    var note = form.querySelector('[data-form-note]');
+    if (!note) {
+      note = document.createElement('p');
+      note.setAttribute('data-form-note', '');
+      note.className = 'text-xs text-primary font-bold mt-2';
+      form.appendChild(note);
+    }
+    note.textContent = message || 'Subscription saved locally.';
+    try { gtag('event', 'newsletter_submit'); } catch (e) {}
+    form.reset();
+  };
+  window.calculateSize = function (button) {
+    var panel = button.closest('section');
+    var selects = panel.querySelectorAll('select');
+    var input = panel.querySelector('input');
+    var result = panel.querySelector('[data-size-result]');
+    var range = panel.querySelector('[data-size-range]');
+    var raw = (input && input.value || '').toUpperCase();
+    var from = selects[0] && selects[0].value || 'CN';
+    var to = selects[1] && selects[1].value || 'US';
+    var size = 'M';
+    if (/XS|150|32|0-2/.test(raw)) size = 'XS';
+    else if (/S|155|160|34|4-6/.test(raw)) size = 'S';
+    else if (/L|170|175|40|12-14/.test(raw)) size = 'L';
+    else if (/XL|180|42|16/.test(raw)) size = 'XL';
+    var map = {
+      XS: {US:'US Size XS (0-2)', EU:'EU 32-34', CN:'CN 150/76A', UK:'UK 4-6', JP:'JP 5'},
+      S: {US:'US Size S (4-6)', EU:'EU 34-36', CN:'CN 155/80A', UK:'UK 8', JP:'JP 7'},
+      M: {US:'US Size M (8-10)', EU:'EU 38-40', CN:'CN 165/88A', UK:'UK 10-12', JP:'JP 9'},
+      L: {US:'US Size L (12-14)', EU:'EU 42-44', CN:'CN 170/96A', UK:'UK 14-16', JP:'JP 11'},
+      XL:{US:'US Size XL (16)', EU:'EU 46', CN:'CN 175/104A', UK:'UK 18', JP:'JP 13'}
+    };
+    if (result) result.textContent = (result.getAttribute('data-prefix') || 'Recommended: ') + (map[size][to] || map[size].US);
+    if (range) {
+      var bust = ({XS:'78-82cm',S:'84-88cm',M:'90-94cm',L:'96-102cm',XL:'104-110cm'}[size]);
+      var prefix = result && result.getAttribute('data-prefix') || '';
+      if (prefix.indexOf('推荐') === 0) range.textContent = '原标准 ' + from + ' · 胸围参考 ' + bust;
+      else if (prefix.indexOf('おすすめ') === 0) range.textContent = '変換元 ' + from + ' · バスト目安 ' + bust;
+      else range.textContent = 'From ' + from + ' · bust ' + bust;
+    }
+  };
+})();
+</script>
+
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebSite","name":"SheinLookbook.xyz","url":"https://sheinlookbook.xyz/","inLanguage":["en","zh","es","pt","fr","de","ja"],"potentialAction":{"@type":"SearchAction","target":"https://sheinlookbook.xyz/en/index.html?q={search_term_string}","query-input":"required name=search_term_string"}}
+</script>
+
 </head>
 <body class="antialiased min-h-screen flex flex-col">
 
@@ -134,11 +230,11 @@ tailwind.config = {
     </nav>
     <div class="flex items-center gap-3">
       <!-- Language dropdown -->
-      <div class="relative group">
-        <button class="text-primary hover:opacity-80 transition-opacity p-1">
+      <div class="relative" data-language-switcher>
+        <button type="button" aria-label="Change language" aria-expanded="false" onclick="toggleLanguageMenu(this)" class="text-primary hover:opacity-80 transition-opacity p-1">
           <span class="material-symbols-outlined">language</span>
         </button>
-        <div class="absolute right-0 mt-2 w-48 bg-white rounded-xl soft-shadow border border-outline-variant/30 overflow-hidden hidden group-hover:block">
+        <div data-language-menu class="absolute right-0 top-full mt-1 w-48 bg-white rounded-xl soft-shadow border border-outline-variant/30 overflow-hidden hidden z-[60]">
           <a href="https://sheinlookbook.xyz/en/shopping-guide.html" class="block px-4 py-2 hover:bg-surface-container-low text-sm">🇺🇸 English</a><a href="https://sheinlookbook.xyz/es/shopping-guide.html" class="block px-4 py-2 hover:bg-surface-container-low text-sm">🇪🇸 Español</a><a href="https://sheinlookbook.xyz/pt/shopping-guide.html" class="block px-4 py-2 hover:bg-surface-container-low text-sm">🇧🇷 Português</a><a href="https://sheinlookbook.xyz/fr/shopping-guide.html" class="block px-4 py-2 hover:bg-surface-container-low text-sm">🇫🇷 Français</a><a href="https://sheinlookbook.xyz/de/shopping-guide.html" class="block px-4 py-2 hover:bg-surface-container-low text-sm">🇩🇪 Deutsch</a><a href="https://sheinlookbook.xyz/ja/shopping-guide.html" class="block px-4 py-2 hover:bg-surface-container-low text-sm">🇯🇵 日本語</a>
         </div>
       </div>
@@ -191,28 +287,28 @@ tailwind.config = {
           <span class="material-symbols-outlined text-primary text-3xl">redeem</span>
           <h2 class="font-headline-md text-on-surface">新用户优惠详解</h2>
         </div>
-        <p class="text-on-surface-variant mb-6">First-time registration is the golden window for maximum discounts. Follow these steps to stack multiple new-user perks.</p>
+        <p class="text-on-surface-variant mb-6">首次注册是拿到最大优惠的黄金窗口。按以下步骤叠加新用户券、免邮与积分权益。</p>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div class="bg-white rounded-xl p-5 soft-shadow border border-outline-variant/20 flex flex-col h-full">
             <div class="flex items-center gap-3 mb-3">
               <div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold">01</div>
-              <h3 class="font-title-sm text-on-surface">Register</h3>
+              <h3 class="font-title-sm text-on-surface">注册账号</h3>
             </div>
-            <p class="text-sm text-on-surface-variant flex-grow">Download the App or register via web with email. The system will automatically issue a first-order exclusive discount.</p>
+            <p class="text-sm text-on-surface-variant flex-grow">下载 App 或使用邮箱在网页端注册，系统会自动发放首单专属折扣。</p>
           </div>
           <div class="bg-white rounded-xl p-5 soft-shadow border border-outline-variant/20 flex flex-col h-full">
             <div class="flex items-center gap-3 mb-3">
               <div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold">02</div>
-              <h3 class="font-title-sm text-on-surface">Claim Coupon</h3>
+              <h3 class="font-title-sm text-on-surface">领取优惠券</h3>
             </div>
-            <p class="text-sm text-on-surface-variant flex-grow">Go to "My Assets - Coupons" and confirm your new-user large no-threshold or tiered coupon is active.</p>
+            <p class="text-sm text-on-surface-variant flex-grow">进入“我的资产 - 优惠券”，确认新用户无门槛券或满减券处于可用状态。</p>
           </div>
           <div class="bg-white rounded-xl p-5 soft-shadow border border-outline-variant/20 flex flex-col h-full">
             <div class="flex items-center gap-3 mb-3">
               <div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold">03</div>
-              <h3 class="font-title-sm text-on-surface">Stack & Checkout</h3>
+              <h3 class="font-title-sm text-on-surface">叠加优惠并结账</h3>
             </div>
-            <p class="text-sm text-on-surface-variant flex-grow">At checkout, the system auto-matches the best discount combo. Make sure "new user free shipping" is checked.</p>
+            <p class="text-sm text-on-surface-variant flex-grow">结账时系统会自动匹配优惠组合，请确认新用户免邮权益已勾选。</p>
           </div>
         </div>
       </section>
@@ -224,15 +320,15 @@ tailwind.config = {
           <span class="material-symbols-outlined text-primary text-3xl">toll</span>
           <h2 class="font-headline-md text-on-surface">积分系统完全指南</h2>
         </div>
-        <p class="text-on-surface-variant mb-6">Shein Points are a cash-equivalent currency. <strong>100 Points = $1 USD</strong>. Points can cover up to 70% of the product total per order (excl. shipping, tax, insurance).</p>
+        <p class="text-on-surface-variant mb-6">Shein 积分可抵扣现金。<strong>100 积分 = 1 美元</strong>。每笔订单中，积分最多可抵扣商品金额的 70%（不含运费、税费和保险）。</p>
         <div class="bg-white rounded-xl overflow-hidden soft-shadow border border-outline-variant/20 mb-6">
           <table class="w-full text-left text-sm">
-            <thead><tr class="bg-surface-variant border-b border-outline-variant"><th class="p-4 font-bold">Method</th><th class="p-4 font-bold">Points</th><th class="p-4 font-bold">Details</th></tr></thead>
+            <thead><tr class="bg-surface-variant border-b border-outline-variant"><th class="p-4 font-bold">获取方式</th><th class="p-4 font-bold">积分</th><th class="p-4 font-bold">说明</th></tr></thead>
             <tbody class="text-on-surface-variant">
-              <tr class="border-b border-surface-variant"><td class="p-4 flex items-center gap-2"><span class="material-symbols-outlined text-primary">mark_email_read</span>Verify Email</td><td class="p-4 font-bold text-primary">100</td><td class="p-4">One-time new-user reward. Complete right after registration.</td></tr>
-              <tr class="border-b border-surface-variant"><td class="p-4 flex items-center gap-2"><span class="material-symbols-outlined text-primary">calendar_today</span>Daily Check-in</td><td class="p-4 font-bold text-primary">1-10+</td><td class="p-4">App-only. Longer streaks yield higher daily rewards.</td></tr>
-              <tr class="border-b border-surface-variant"><td class="p-4 flex items-center gap-2"><span class="material-symbols-outlined text-primary">shopping_bag</span>Purchase</td><td class="p-4 font-bold text-primary">1/$1</td><td class="p-4">Points credited within 24h after order confirmation.</td></tr>
-              <tr><td class="p-4 flex items-center gap-2"><span class="material-symbols-outlined text-primary">reviews</span>Write Review</td><td class="p-4 font-bold text-primary">Up to 17</td><td class="p-4">Text +5, Photo +10, Size fit info +2.</td></tr>
+              <tr class="border-b border-surface-variant"><td class="p-4 flex items-center gap-2"><span class="material-symbols-outlined text-primary">mark_email_read</span>验证邮箱</td><td class="p-4 font-bold text-primary">100</td><td class="p-4">一次性新用户奖励，注册后尽快完成。</td></tr>
+              <tr class="border-b border-surface-variant"><td class="p-4 flex items-center gap-2"><span class="material-symbols-outlined text-primary">calendar_today</span>每日签到</td><td class="p-4 font-bold text-primary">1-10+</td><td class="p-4">仅 App 可用，连续签到越久奖励越高。</td></tr>
+              <tr class="border-b border-surface-variant"><td class="p-4 flex items-center gap-2"><span class="material-symbols-outlined text-primary">shopping_bag</span>购物返分</td><td class="p-4 font-bold text-primary">1/$1</td><td class="p-4">订单确认后 24 小时内入账。</td></tr>
+              <tr><td class="p-4 flex items-center gap-2"><span class="material-symbols-outlined text-primary">reviews</span>撰写评价</td><td class="p-4 font-bold text-primary">最高 17</td><td class="p-4">文字评价 +5，图片 +10，尺码反馈 +2。</td></tr>
             </tbody>
           </table>
         </div>
@@ -240,8 +336,8 @@ tailwind.config = {
           <div class="absolute right-0 top-0 w-32 h-32 bg-primary-container rounded-bl-full opacity-20"></div>
           <span class="material-symbols-outlined text-primary text-4xl relative z-10">layers</span>
           <div class="relative z-10">
-            <h4 class="font-title-sm text-on-surface mb-2">Stacking Logic</h4>
-            <p class="text-sm text-on-surface-variant leading-relaxed">You can stack <strong>Coupon + Points + Gift Card</strong> in one checkout. Order: apply highest coupon first → enter points → pay remainder with gift card.</p>
+            <h4 class="font-title-sm text-on-surface mb-2">优惠叠加逻辑</h4>
+            <p class="text-sm text-on-surface-variant leading-relaxed">同一笔订单可叠加 <strong>优惠券 + 积分 + 礼品卡</strong>。建议顺序：先使用最高面额优惠券，再输入积分，最后用礼品卡或银行卡支付剩余金额。</p>
           </div>
         </div>
       </section>
@@ -252,9 +348,9 @@ tailwind.config = {
         <h2 class="font-headline-md text-on-surface mb-4">免邮技巧</h2>
         <div class="bg-white rounded-xl p-6 soft-shadow border border-outline-variant/20">
           <ul class="space-y-4 text-sm text-on-surface-variant">
-            <li class="flex items-start gap-3"><span class="material-symbols-outlined text-primary">local_shipping</span><div><strong class="text-on-surface">Free Shipping Thresholds</strong><p>US: $29 standard | UK: £39 | JP: ¥2,000 | EU: €39 | BR: R$49 (promo)</p></div></li>
-            <li class="flex items-start gap-3"><span class="material-symbols-outlined text-primary">event</span><div><strong class="text-on-surface">Flash Sales</strong><p>During site-wide events, free shipping minimums often drop by 30-50%.</p></div></li>
-            <li class="flex items-start gap-3"><span class="material-symbols-outlined text-primary">group</span><div><strong class="text-on-surface">Group Orders</strong><p>Combine orders with friends to hit thresholds faster and split shipping.</p></div></li>
+            <li class="flex items-start gap-3"><span class="material-symbols-outlined text-primary">local_shipping</span><div><strong class="text-on-surface">免邮门槛</strong><p>US: $29 standard | UK: £39 | JP: ¥2,000 | EU: €39 | BR: R$49 (promo)</p></div></li>
+            <li class="flex items-start gap-3"><span class="material-symbols-outlined text-primary">event</span><div><strong class="text-on-surface">闪购活动</strong><p>During site-wide events, free shipping minimums often drop by 30-50%.</p></div></li>
+            <li class="flex items-start gap-3"><span class="material-symbols-outlined text-primary">group</span><div><strong class="text-on-surface">拼单下单</strong><p>Combine orders with friends to hit thresholds faster and split shipping.</p></div></li>
           </ul>
         </div>
       </section>
@@ -265,9 +361,9 @@ tailwind.config = {
         <h2 class="font-headline-md text-on-surface mb-4">退换货流程</h2>
         <div class="bg-white rounded-xl p-6 soft-shadow border border-outline-variant/20">
           <ul class="space-y-4 text-sm text-on-surface-variant">
-            <li class="flex items-start gap-3"><span class="material-symbols-outlined text-primary">schedule</span><div><strong class="text-on-surface">Return Window</strong><p>Most regions allow 30 days from delivery. First return per order is usually free.</p></div></li>
-            <li class="flex items-start gap-3"><span class="material-symbols-outlined text-primary">print</span><div><strong class="text-on-surface">Self-Service</strong><p>Use the App/Website "My Orders" → "Return" to print prepaid labels automatically.</p></div></li>
-            <li class="flex items-start gap-3"><span class="material-symbols-outlined text-primary">payments</span><div><strong class="text-on-surface">Refund Method</strong><p>Refunds return to original payment method within 5-10 business days after warehouse receipt.</p></div></li>
+            <li class="flex items-start gap-3"><span class="material-symbols-outlined text-primary">schedule</span><div><strong class="text-on-surface">退货期限</strong><p>Most regions allow 30 天 from delivery. First return per order is usually free.</p></div></li>
+            <li class="flex items-start gap-3"><span class="material-symbols-outlined text-primary">print</span><div><strong class="text-on-surface">自助退货</strong><p>Use the App/Website "My Orders" → "Return" to print prepaid labels automatically.</p></div></li>
+            <li class="flex items-start gap-3"><span class="material-symbols-outlined text-primary">payments</span><div><strong class="text-on-surface">退款方式</strong><p>Refunds return to original payment method within 5-10 business 天 after warehouse receipt.</p></div></li>
           </ul>
         </div>
       </section>
@@ -284,7 +380,7 @@ tailwind.config = {
     <div class="flex flex-wrap justify-center gap-4 md:gap-6 text-sm">
       <a href="#" class="text-on-surface-variant hover:text-on-surface transition-colors">关于我们</a>
       <a href="#" class="text-on-surface-variant hover:text-on-surface transition-colors">隐私政策</a>
-      <a href="#" class="text-on-surface-variant hover:text-on-surface transition-colors">Affiliate Disclosure</a>
+      <a href="#" class="text-on-surface-variant hover:text-on-surface transition-colors">联盟披露</a>
       <a href="#" class="text-on-surface-variant hover:text-on-surface transition-colors">联系我们</a>
     </div>
     <p class="text-sm text-on-surface-variant/80 text-center">© 2026 SheinLookbook.xyz. 本站为独立购物指南，与 SHEIN 官方无直接关联。</p>
