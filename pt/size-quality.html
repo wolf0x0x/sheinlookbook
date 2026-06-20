@@ -184,6 +184,67 @@ tailwind.config = {
       window.applyStyleFilters();
     }
   });
+
+  window.handleSiteSearch = function (event) {
+    event.preventDefault();
+    var form = event.currentTarget;
+    var input = form.querySelector('input[name="q"]');
+    var query = (input && input.value || '').trim().toLowerCase();
+    var note = form.querySelector('[data-search-note]');
+    if (!note) {
+      note = document.createElement('p');
+      note.setAttribute('data-search-note', '');
+      note.className = 'text-xs text-primary font-bold mt-2';
+      form.appendChild(note);
+    }
+    if (!query) { note.textContent = form.getAttribute('data-empty-message') || 'Enter a search term.'; return; }
+    var pages = [
+      {title:'Shopping Guide 购物攻略', url:'shopping-guide.html', keywords:'coupon promo discount points shipping return guide new user 优惠码 积分 免邮 退货 攻略'},
+      {title:'Style by Occasion 场景穿搭', url:'style-by-occasion.html', keywords:'work date vacation sport party daily outfit dress blazer yoga jeans 场景 穿搭 通勤 约会 度假 运动 派对 日常'},
+      {title:'Size & Quality 尺码质量', url:'size-quality.html', keywords:'size converter fabric quality top material fit 尺码 面料 质量 换算 踩雷 值得买'},
+      {title:'Global Sites 全球站点', url:'global-sites.html', keywords:'country price delivery tariff payment japan brazil uae global 价格 物流 关税 支付 全球'},
+      {title:'Sustainability 可持续发展', url:'sustainability.html', keywords:'sustainability ethics carbon polyester environment recycle 可持续 环保 伦理 碳排放 面料'}
+    ];
+    var hits = pages.filter(function (page) { return (page.title + ' ' + page.keywords).toLowerCase().indexOf(query) !== -1; });
+    if (!hits.length) hits = pages.filter(function (page) { return page.title.toLowerCase().indexOf(query.slice(0, 4)) !== -1; });
+    note.innerHTML = hits.length ? hits.slice(0, 3).map(function (hit) { return '<a class="underline" href="' + hit.url + '?q=' + encodeURIComponent(query) + '">' + hit.title + '</a>'; }).join(' · ') : (form.getAttribute('data-no-results-message') || 'No matching pages yet.');
+    try { gtag('event', 'site_search', {search_term: query}); } catch (e) {}
+  };
+
+  function getCommunityKey() {
+    return 'sheinlookbook-community-' + location.pathname.replace(/[^a-z0-9]+/gi, '-');
+  }
+  window.renderCommunityNotes = function () {
+    document.querySelectorAll('[data-community-list]').forEach(function (list) {
+      var notes = [];
+      try { notes = JSON.parse(localStorage.getItem(getCommunityKey()) || '[]'); } catch (e) { notes = []; }
+      if (!notes.length) {
+        list.innerHTML = '<p class="text-sm text-on-surface-variant">' + (list.getAttribute('data-empty-message') || 'No community notes yet.') + '</p>';
+        return;
+      }
+      list.innerHTML = notes.slice(0, 6).map(function (note) {
+        return '<article class="rounded-lg bg-white border border-outline-variant/20 p-3 soft-shadow"><p class="text-sm text-on-surface">' + note.text.replace(/[&<>]/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]; }) + '</p><p class="text-xs text-on-surface-variant mt-2">' + note.date + '</p></article>';
+      }).join('');
+    });
+  };
+  window.handleCommunitySubmit = function (event) {
+    event.preventDefault();
+    var form = event.currentTarget;
+    var input = form.querySelector('textarea[name="note"]');
+    var text = (input && input.value || '').trim();
+    var status = form.querySelector('[data-community-status]');
+    if (!text) { if (status) status.textContent = form.getAttribute('data-empty-message') || 'Write a note first.'; return; }
+    var notes = [];
+    try { notes = JSON.parse(localStorage.getItem(getCommunityKey()) || '[]'); } catch (e) { notes = []; }
+    notes.unshift({ text: text.slice(0, 220), date: new Date().toISOString().slice(0, 10) });
+    localStorage.setItem(getCommunityKey(), JSON.stringify(notes.slice(0, 20)));
+    if (status) status.textContent = form.getAttribute('data-success-message') || 'Saved.';
+    form.reset();
+    window.renderCommunityNotes();
+    try { gtag('event', 'community_note_submit'); } catch (e) {}
+  };
+  document.addEventListener('DOMContentLoaded', window.renderCommunityNotes);
+
   window.handleNewsletter = function (event, message) {
     event.preventDefault();
     var form = event.currentTarget;
@@ -256,6 +317,7 @@ tailwind.config = {
 <a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary transition-colors" href="sustainability.html">Sustentabilidade</a>
 
     </nav>
+    <form data-site-search class="hidden lg:flex items-center gap-2" role="search" aria-label="Buscar" data-empty-message="Enter a search term." data-no-results-message="No matching pages yet." onsubmit="handleSiteSearch(event)"><input name="q" type="search" placeholder="Buscar looks, tamanhos, guias" class="w-56 rounded-full border border-outline-variant px-3 py-1.5 text-xs bg-white focus:border-primary outline-none"/><button type="submit" class="rounded-full bg-primary text-white px-3 py-1.5 text-xs font-bold">Buscar</button></form>
     <div class="flex items-center gap-3">
       <!-- Language dropdown -->
       <div class="relative" data-language-switcher>
@@ -282,6 +344,7 @@ tailwind.config = {
 <a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary transition-colors" href="sustainability.html">Sustentabilidade</a>
 
     </nav>
+    <form data-site-search class="mt-3 flex flex-col gap-2" role="search" aria-label="Buscar" data-empty-message="Enter a search term." data-no-results-message="No matching pages yet." onsubmit="handleSiteSearch(event)"><input name="q" type="search" placeholder="Buscar looks, tamanhos, guias" class="w-full rounded-full border border-outline-variant px-3 py-2 text-sm bg-white focus:border-primary outline-none"/><button type="submit" class="rounded-full bg-primary text-white px-4 py-2 text-sm font-bold">Buscar</button></form>
   </div>
 </header>
 
@@ -352,15 +415,31 @@ tailwind.config = {
         <div class="bg-surface-container-low p-5 rounded-xl border border-tertiary-fixed-dim">
           <h3 class="font-title-sm text-tertiary mb-4 flex items-center gap-2"><span>🟢</span> Top 10 Recomendados</h3>
           <ul class="space-y-3">
-            <li class="flex items-center justify-between p-3 bg-white rounded-lg soft-shadow border border-outline-variant/20"><div class="flex items-center gap-3"><span class="font-bold text-tertiary">1</span><div><p class="text-xs font-bold">DAZY Cotton Tee</p><p class="text-xs text-on-surface-variant">sw210324 | 4.9/5</p></div></div><span class="px-2 py-1 rounded bg-[#FFF0F5] text-primary text-xs font-bold">100%棉</span></li>
-            <li class="flex items-center justify-between p-3 bg-white rounded-lg soft-shadow border border-outline-variant/20"><div class="flex items-center gap-3"><span class="font-bold text-tertiary">2</span><div><p class="text-xs font-bold">MOTF Silk Blouse</p><p class="text-xs text-on-surface-variant">swblouse | 4.8/5</p></div></div><span class="px-2 py-1 rounded bg-[#FFF0F5] text-primary text-xs font-bold">Premium</span></li>
+            <li class="flex items-center justify-between p-3 bg-white rounded-lg soft-shadow border border-outline-variant/20"><div class="flex items-center gap-3"><span class="font-bold text-tertiary">1</span><div><p class="text-xs font-bold">DAZY 纯棉 T 恤</p><p class="text-xs text-on-surface-variant">sw210324 | 4.9/5</p></div></div><span class="px-2 py-1 rounded bg-[#FFF0F5] text-primary text-xs font-bold">100%棉</span></li>
+            <li class="flex items-center justify-between p-3 bg-white rounded-lg soft-shadow border border-outline-variant/20"><div class="flex items-center gap-3"><span class="font-bold text-tertiary">2</span><div><p class="text-xs font-bold">MOTF 真丝衬衫</p><p class="text-xs text-on-surface-variant">swblouse | 4.8/5</p></div></div><span class="px-2 py-1 rounded bg-[#FFF0F5] text-primary text-xs font-bold">高级面料</span></li>
+            <li class="flex items-center justify-between p-3 bg-white rounded-lg soft-shadow border border-outline-variant/20"><div class="flex items-center gap-3"><span class="font-bold text-tertiary">3</span><div><p class="text-xs font-bold">SHEIN BASICS 直筒牛仔裤</p><p class="text-xs text-on-surface-variant">swdenim | 4.8/5</p></div></div><span class="px-2 py-1 rounded bg-[#FFF0F5] text-primary text-xs font-bold">版型稳定</span></li>
+            <li class="flex items-center justify-between p-3 bg-white rounded-lg soft-shadow border border-outline-variant/20"><div class="flex items-center gap-3"><span class="font-bold text-tertiary">4</span><div><p class="text-xs font-bold">LUNE 亚麻衬衫裙</p><p class="text-xs text-on-surface-variant">swdress | 4.7/5</p></div></div><span class="px-2 py-1 rounded bg-[#FFF0F5] text-primary text-xs font-bold">透气</span></li>
+            <li class="flex items-center justify-between p-3 bg-white rounded-lg soft-shadow border border-outline-variant/20"><div class="flex items-center gap-3"><span class="font-bold text-tertiary">5</span><div><p class="text-xs font-bold">Glowmode 高腰瑜伽裤</p><p class="text-xs text-on-surface-variant">swactive | 4.8/5</p></div></div><span class="px-2 py-1 rounded bg-[#FFF0F5] text-primary text-xs font-bold">回弹好</span></li>
+            <li class="flex items-center justify-between p-3 bg-white rounded-lg soft-shadow border border-outline-variant/20"><div class="flex items-center gap-3"><span class="font-bold text-tertiary">6</span><div><p class="text-xs font-bold">Dazy 西装阔腿裤</p><p class="text-xs text-on-surface-variant">swpants | 4.7/5</p></div></div><span class="px-2 py-1 rounded bg-[#FFF0F5] text-primary text-xs font-bold">垂坠感</span></li>
+            <li class="flex items-center justify-between p-3 bg-white rounded-lg soft-shadow border border-outline-variant/20"><div class="flex items-center gap-3"><span class="font-bold text-tertiary">7</span><div><p class="text-xs font-bold">MOTF 针织开衫</p><p class="text-xs text-on-surface-variant">swknit | 4.7/5</p></div></div><span class="px-2 py-1 rounded bg-[#FFF0F5] text-primary text-xs font-bold">不起球</span></li>
+            <li class="flex items-center justify-between p-3 bg-white rounded-lg soft-shadow border border-outline-variant/20"><div class="flex items-center gap-3"><span class="font-bold text-tertiary">8</span><div><p class="text-xs font-bold">SHEIN MOD 纯色衬衫</p><p class="text-xs text-on-surface-variant">swshirt | 4.6/5</p></div></div><span class="px-2 py-1 rounded bg-[#FFF0F5] text-primary text-xs font-bold">不透</span></li>
+            <li class="flex items-center justify-between p-3 bg-white rounded-lg soft-shadow border border-outline-variant/20"><div class="flex items-center gap-3"><span class="font-bold text-tertiary">9</span><div><p class="text-xs font-bold">VCAY 度假罩衫</p><p class="text-xs text-on-surface-variant">swvacay | 4.6/5</p></div></div><span class="px-2 py-1 rounded bg-[#FFF0F5] text-primary text-xs font-bold">轻薄</span></li>
+            <li class="flex items-center justify-between p-3 bg-white rounded-lg soft-shadow border border-outline-variant/20"><div class="flex items-center gap-3"><span class="font-bold text-tertiary">10</span><div><p class="text-xs font-bold">SHEIN Clasi 西装外套</p><p class="text-xs text-on-surface-variant">swblazer | 4.6/5</p></div></div><span class="px-2 py-1 rounded bg-[#FFF0F5] text-primary text-xs font-bold">挺括</span></li>
           </ul>
         </div>
         <div class="bg-surface-container-high p-5 rounded-xl border border-error-container">
           <h3 class="font-title-sm text-error mb-4 flex items-center gap-2"><span>🔴</span> Top 10 a Evitar</h3>
           <ul class="space-y-3">
-            <li class="flex items-center justify-between p-3 bg-white rounded-lg soft-shadow border border-outline-variant/20"><div class="flex items-center gap-3"><span class="font-bold text-error">1</span><div><p class="text-xs font-bold">EZwear Ribbed Knit</p><p class="text-xs text-on-surface-variant">sw220912 | See-through</p></div></div><span class="px-2 py-1 rounded bg-error-container text-on-error-container text-xs font-bold">Too Thin</span></li>
-            <li class="flex items-center justify-between p-3 bg-white rounded-lg soft-shadow border border-outline-variant/20"><div class="flex items-center gap-3"><span class="font-bold text-error">2</span><div><p class="text-xs font-bold">VCAY Floral Dress</p><p class="text-xs text-on-surface-variant">swdress | Runs small</p></div></div><span class="px-2 py-1 rounded bg-error-container text-on-error-container text-xs font-bold">Small Fit</span></li>
+            <li class="flex items-center justify-between p-3 bg-white rounded-lg soft-shadow border border-outline-variant/20"><div class="flex items-center gap-3"><span class="font-bold text-error">1</span><div><p class="text-xs font-bold">EZwear 罗纹针织衫</p><p class="text-xs text-on-surface-variant">sw220912 | 偏透</p></div></div><span class="px-2 py-1 rounded bg-error-container text-on-error-container text-xs font-bold">过薄</span></li>
+            <li class="flex items-center justify-between p-3 bg-white rounded-lg soft-shadow border border-outline-variant/20"><div class="flex items-center gap-3"><span class="font-bold text-error">2</span><div><p class="text-xs font-bold">VCAY 碎花连衣裙</p><p class="text-xs text-on-surface-variant">swdress | 尺码偏小</p></div></div><span class="px-2 py-1 rounded bg-error-container text-on-error-container text-xs font-bold">版型偏小</span></li>
+            <li class="flex items-center justify-between p-3 bg-white rounded-lg soft-shadow border border-outline-variant/20"><div class="flex items-center gap-3"><span class="font-bold text-error">3</span><div><p class="text-xs font-bold">PU 皮机车夹克</p><p class="text-xs text-on-surface-variant">swjacket | 异味</p></div></div><span class="px-2 py-1 rounded bg-error-container text-on-error-container text-xs font-bold">异味明显</span></li>
+            <li class="flex items-center justify-between p-3 bg-white rounded-lg soft-shadow border border-outline-variant/20"><div class="flex items-center gap-3"><span class="font-bold text-error">4</span><div><p class="text-xs font-bold">白色罗纹背心</p><p class="text-xs text-on-surface-variant">swtank | 透肤</p></div></div><span class="px-2 py-1 rounded bg-error-container text-on-error-container text-xs font-bold">偏透</span></li>
+            <li class="flex items-center justify-between p-3 bg-white rounded-lg soft-shadow border border-outline-variant/20"><div class="flex items-center gap-3"><span class="font-bold text-error">5</span><div><p class="text-xs font-bold">亮片迷你裙</p><p class="text-xs text-on-surface-variant">swparty | 扎皮肤</p></div></div><span class="px-2 py-1 rounded bg-error-container text-on-error-container text-xs font-bold">扎肤</span></li>
+            <li class="flex items-center justify-between p-3 bg-white rounded-lg soft-shadow border border-outline-variant/20"><div class="flex items-center gap-3"><span class="font-bold text-error">6</span><div><p class="text-xs font-bold">低腰阔腿裤</p><p class="text-xs text-on-surface-variant">swpants | 腰松</p></div></div><span class="px-2 py-1 rounded bg-error-container text-on-error-container text-xs font-bold">腰围偏大</span></li>
+            <li class="flex items-center justify-between p-3 bg-white rounded-lg soft-shadow border border-outline-variant/20"><div class="flex items-center gap-3"><span class="font-bold text-error">7</span><div><p class="text-xs font-bold">网纱打底衫</p><p class="text-xs text-on-surface-variant">swmesh | 易勾丝</p></div></div><span class="px-2 py-1 rounded bg-error-container text-on-error-container text-xs font-bold">易破</span></li>
+            <li class="flex items-center justify-between p-3 bg-white rounded-lg soft-shadow border border-outline-variant/20"><div class="flex items-center gap-3"><span class="font-bold text-error">8</span><div><p class="text-xs font-bold">仿羊羔绒外套</p><p class="text-xs text-on-surface-variant">swcoat | 掉毛</p></div></div><span class="px-2 py-1 rounded bg-error-container text-on-error-container text-xs font-bold">掉毛</span></li>
+            <li class="flex items-center justify-between p-3 bg-white rounded-lg soft-shadow border border-outline-variant/20"><div class="flex items-center gap-3"><span class="font-bold text-error">9</span><div><p class="text-xs font-bold">松紧腰短裤</p><p class="text-xs text-on-surface-variant">swshort | 卷边</p></div></div><span class="px-2 py-1 rounded bg-error-container text-on-error-container text-xs font-bold">易变形</span></li>
+            <li class="flex items-center justify-between p-3 bg-white rounded-lg soft-shadow border border-outline-variant/20"><div class="flex items-center gap-3"><span class="font-bold text-error">10</span><div><p class="text-xs font-bold">薄款针织裙</p><p class="text-xs text-on-surface-variant">swknitdress | 起球</p></div></div><span class="px-2 py-1 rounded bg-error-container text-on-error-container text-xs font-bold">易起球</span></li>
           </ul>
         </div>
       </div>
