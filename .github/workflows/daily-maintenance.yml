@@ -1,0 +1,29 @@
+name: Daily static maintenance
+
+on:
+  schedule:
+    # 02:00 Asia/Shanghai = 18:00 UTC on the previous day.
+    - cron: "0 18 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-static-maintenance
+  cancel-in-progress: false
+
+jobs:
+  maintain:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Configure git author
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      - name: Run serial maintenance tasks
+        run: python3 scripts/daily_maintenance.py --commit
